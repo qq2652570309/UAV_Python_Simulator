@@ -26,10 +26,12 @@ class Simulator:
 
     def generate(self):
         startTimeTotal = time.time()
-        startPoints = self.choosePoints(self.startPointsNum)
-        startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
-        endPoints = self.choosePoints(self.endPointsNum)
-        endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
+        # startPoints = self.choosePoints(self.startPointsNum)
+        # startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
+        # endPoints = self.choosePoints(self.endPointsNum)
+        # endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
+        startPositions, endPositions = self.generateLaunchingPoints()
+        
         for index in range(self.iteration):
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
@@ -38,14 +40,14 @@ class Simulator:
             # endPoints = self.choosePoints(self.endPointsNum)
             # endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
 
-            for startRow, startCol in startPositions:
+            for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
                 # set traning sets
-                self.trainingSets[index,:-1,startRow,startCol,1] = np.random.uniform(0, 1)
+                startRow = int(startRow)
+                startCol = int(startCol)
+                self.trainingSets[index,:-1,startRow,startCol,1] = launchingRate
                 # generate ground truth
                 for currentTime in range(self.time):
-                    if currentTime == self.time -1:
-                        continue
 
                     succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
                     if succ:
@@ -115,4 +117,49 @@ class Simulator:
     def chooseTimeClip(self):
         self.groundTruths = self.groundTruths[:, np.arange(0, self.groundTruths.shape[1], step=5), :,:,:]
 
+    def generateLaunchingPoints(self):
+        launchingPoints1 = np.array([
+            [15, 0, 0],
+            [15, 2, 0],
+            [16, 0, 0],
+            [16, 2, 0],  
+        ])
+
+        launchingPoints2 = np.array([
+            [7, 10, 0],
+            [7, 11, 0],
+            [8, 10, 0],
+            [8, 11, 0],
+        ])
+
+        launchingPoint3 = np.array([
+            [23, 29, 0],
+            [23, 30, 0],
+            [24, 29, 0],
+            [24, 30, 0],
+        ])
+
+        destination = np.array([
+            [30, 9],
+            [30, 10],
+            [31, 9],
+            [31, 10],
+            [7, 22],
+            [7, 25],
+            [9, 22],
+            [9, 25],
+            [30, 9],
+            [30, 10],
+            [31, 9],
+            [31, 10],
+        ])
+
+        launchingArea = np.array([launchingPoints1, launchingPoints2, launchingPoint3], dtype=np.float32)
+        for i in range(len(launchingArea)):
+            p = np.random.uniform(0.2, 0.8)
+            launchingArea[i,:,2] = p
+        launchingArea = np.concatenate(launchingArea, axis=0)
+        
+        return launchingArea, destination
+        
 

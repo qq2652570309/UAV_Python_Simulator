@@ -26,19 +26,11 @@ class Simulator:
 
     def generate(self):
         startTimeTotal = time.time()
-        # startPoints = self.choosePoints(self.startPointsNum)
-        # startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
-        # endPoints = self.choosePoints(self.endPointsNum)
-        # endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
         startPositions, endPositions = self.generateLaunchingPoints()
         
         for index in range(self.iteration):
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
-            # startPoints = self.choosePoints(self.startPointsNum)
-            # startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
-            # endPoints = self.choosePoints(self.endPointsNum)
-            # endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
 
             for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))

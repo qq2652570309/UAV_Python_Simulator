@@ -1,17 +1,14 @@
 import os
 import tensorflow as tf
 from tensorflow.python.ops import math_ops
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv2DTranspose, Conv3DTranspose
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv3DTranspose
 from tensorflow.keras.layers import Flatten, Activation, Reshape
 from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.layers import TimeDistributed
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import BatchNormalization, LeakyReLU, TimeDistributed
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras import backend as K
-from tensorflow.keras import losses
-from tensorflow.keras import metrics
+from tensorflow.keras import losses, metrics
 import numpy as np
 
 
@@ -182,7 +179,7 @@ class Cnn_Lstm_Model:
         # y_test/ prediction : (1500, 30, 16, 16)
         prediction = np.round(np.clip(prediction, 0, 1))
 
-        prediction = prediction[:,25:]
+        prediction = prediction[:,:]
 
         p = np.sum(prediction, axis=1)
         p = p / prediction.shape[1]
@@ -195,36 +192,8 @@ class Cnn_Lstm_Model:
         for i in range(len(y)):
             y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
         
-        # np.save('data/prediction.npy', p)
-        # np.save('data/y_test.npy', y)
-
-        # import cv2
-        # for i in [10, 100, 500, 1000, 1200]:
-        #     cv2.imwrite('img/y{0}.png'.format(i), y[i] * 255)
-        #     cv2.imwrite('img/p{0}.png'.format(i), p[i] * 255)
-
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-
-        n = 8
-        plt.figure(figsize=(30, 4))
-        for i in range(1, n+1):
-            # display original
-            ax = plt.subplot(2, n, i)
-            plt.imshow(y[i])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-
-            # display reconstruction
-            ax = plt.subplot(2, n, i + n)
-            plt.imshow(p[i])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        # plt.show()
-        plt.savefig("img/trajectory.png")
+        np.save('data/prediction.npy', p)
+        np.save('data/y_test.npy', y)
 
 
 CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 50)

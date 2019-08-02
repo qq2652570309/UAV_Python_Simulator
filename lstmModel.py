@@ -162,6 +162,32 @@ class Cnn_Lstm_Model:
 
         np.save('data/prediction.npy', prediction)
         np.save('data/y_test.npy', y_test)
+    
+    def meanDensityMap(self, trs, grt, ckpt):
+        uav_label = np.load(grt)
+        uav_data = np.load(trs)
+        self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+        self.configure()
+        prediction = self.model.predict(uav_data)
+        
+        # y_test/ prediction : (1500, 30, 16, 16)
+        prediction = np.round(np.clip(prediction, 0, 1))
+
+        prediction = prediction[:,25:]
+
+        p = np.sum(prediction, axis=1)
+        p = p / prediction.shape[1]
+        y = np.sum(uav_label, axis=1)
+        y = y / uav_label.shape[1]
+
+        for i in range(len(p)):
+            p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
+
+        for i in range(len(y)):
+            y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
+        
+        np.save('data/prediction.npy', p)
+        np.save('data/y_test.npy', y)
 
 
     def generateCNNdata(self, ckpt):
@@ -177,7 +203,7 @@ class Cnn_Lstm_Model:
 
 
 CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
-CSM.train()
-# CSM.meanDensityMap('uav-49-0.82')
+# CSM.train()
+CSM.meanDensityMap("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 'uav-49-0.82')
 
 

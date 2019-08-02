@@ -133,9 +133,10 @@ class Cnn_Lstm_Model:
             ModelCheckpoint(
                 filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
                 monitor='val_recall',
+                mode='max',
                 # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
                 # monitor='val_mean_absolute_error',
-                mode='max',
+                # mode='min',
                 save_best_only=True,
                 save_weights_only=True,
                 verbose=True
@@ -150,48 +151,15 @@ class Cnn_Lstm_Model:
                     callbacks=callbacks)
     
 
-    def predict(self, ckpt, index, num):
-        y_test = self.y_test
-        x_test = self.x_test
-        self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
-        self.configure()
-        prediction = self.model.predict(x_test)
-
-        p = np.round(prediction)
-
-        l = len(y_test[index])
-        if l <= num or num < 0:
-            num = l
-
-        import cv2
-        for i in range(num):
-            cv2.imwrite('img/y{0}.png'.format(i), y_test[index][i] * 255)
-            cv2.imwrite('img/p{0}.png'.format(i), p[index][i] * 255)
-    
-
-    def meanDensityMap(self, ckpt):
+    def lstmPredict(self, ckpt):
         y_test = self.y_test
         x_test = self.x_test
         self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
         self.configure()
         prediction = self.model.predict(x_test)
         
-        # y_test/ prediction : (1500, 30, 16, 16)
         prediction = np.round(np.clip(prediction, 0, 1))
 
-        # p = np.sum(prediction, axis=1)
-        # p = p / prediction.shape[1]
-        # y = np.sum(y_test, axis=1)
-        # y = y / y_test.shape[1]
-
-        # for i in range(len(p)):
-        #     p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
-
-        # for i in range(len(y)):
-        #     y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
-        
-        # np.save('data/prediction.npy', p)
-        # np.save('data/y_test.npy', y)
         np.save('data/prediction.npy', prediction)
         np.save('data/y_test.npy', y_test)
 
@@ -208,10 +176,8 @@ class Cnn_Lstm_Model:
         np.save('data/cnnTrainingSets.npy', cnnTrainingSets)
 
 
-
 CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 CSM.train()
-# CSM.predict('uav-02-1.00', 0, -1)
 # CSM.meanDensityMap('uav-49-0.82')
 
 

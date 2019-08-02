@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from tensorflow.python.ops import math_ops
-from tensorflow.keras.layers import Input, Dense, Conv1D, MaxPooling1D, Dropout, LSTM
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv2DTranspose
 from tensorflow.keras.layers import Flatten, Activation, Reshape
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import BatchNormalization, LeakyReLU, TimeDistributed
@@ -20,56 +20,50 @@ class Cnn_Model:
         self.model = None
         self.epics = epics
 
-        # uav_data = np.load(trs)
-        # print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
+        uav_data = np.load(trs)
+        print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
 
-        # uav_label = np.load(grt)
-        # print('uav_label: ', uav_label.shape) # (10000, 30, 32, 32)
+        uav_label = np.load(grt)
+        print('uav_label: ', uav_label.shape) # (10000, 30, 32, 32)
 
-        # data_size = int(len(uav_data) * 0.85)
+        data_size = int(len(uav_data) * 0.85)
 
-        # (x_train, y_train) = uav_data[:data_size], uav_label[:data_size]
-        # (x_test, y_test) = uav_data[data_size:], uav_label[data_size:]
+        (x_train, y_train) = uav_data[:data_size], uav_label[:data_size]
+        (x_test, y_test) = uav_data[data_size:], uav_label[data_size:]
 
         cnn_model = Sequential()
-        cnn_model.add(Conv1D(8, kernel_size=2,
+        cnn_model.add(Conv2D(64, kernel_size=(3, 3),
                         activation='relu',
-                        input_shape=(32, 32)))
-        cnn_model.add(Conv1D(16, kernel_size=2, activation='relu'))
-        cnn_model.add(MaxPooling1D(pool_size=2))
+                        input_shape=(30, 32, 32)))
+        cnn_model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(MaxPooling2D(pool_size=2))
         # cnn_model.add(Conv1D(32, kernel_size=(2, 2), activation='relu'))
         # cnn_model.add(Conv1D(64, kernel_size=(3, 3), activation='relu'))
         # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
-        cnn_model.summary()
-        cnn_model.add(Dense(240))
-        cnn_model.add(Reshape((15, 15)))
-        # cnn_model.add(Conv1DTranspose(32, kernel_size=(5, 5), activation='relu'))
-        # cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv1D(16, kernel_size=5, activation='relu'))
+        cnn_model.add(Dense(23296))
+        cnn_model.add(Reshape((13, 14, 128)))
+        cnn_model.add(Conv2DTranspose(96, kernel_size=(5, 5), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv1D(8, kernel_size=5, activation='relu'))
+        cnn_model.add(Conv2DTranspose(72, kernel_size=(5, 5), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv1D(4, kernel_size=5, activation='relu'))
+        cnn_model.add(Conv2DTranspose(64, kernel_size=(5, 5), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv1D(2, kernel_size=4, activation='relu'))
+        cnn_model.add(Conv2DTranspose(48, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv1D(1, kernel_size=3, activation='relu'))
+        cnn_model.add(Conv2DTranspose(32, kernel_size=(3, 4), activation='relu'))
         cnn_model.add(BatchNormalization())
-        # cnn_model.add(Conv1DTranspose(1, kernel_size=(3, 3), activation='relu'))
-        # cnn_model.add(BatchNormalization())
-        cnn_model.add(Reshape((32,32)))
         cnn_model.summary()
 
-        # cnn_input = Input(shape=uav_data[0].shape)
-        # cnn_output = TimeDistributed(cnn_model)(cnn_input)
+        cnn_input = Input(shape=uav_data[0].shape)
+        cnn_output = cnn_model(cnn_input)
 
-        # self.model = Model(inputs=cnn_input, outputs=cnn_output)
+        self.model = Model(inputs=cnn_input, outputs=cnn_output)
 
-        # self.y_train = y_train
-        # self.x_train = x_train
-        # self.y_test = y_test
-        # self.x_test = x_test
+        self.y_train = y_train
+        self.x_train = x_train
+        self.y_test = y_test
+        self.x_test = x_test
 
 
     def configure(self):
@@ -78,6 +72,7 @@ class Cnn_Model:
             loss='mean_squared_error',
             metrics=[metrics.mae]
         )
+
 
     def train(self):
         self.configure()
@@ -104,7 +99,7 @@ class Cnn_Model:
                     shuffle=True,
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
-
+    
 
     def lstmPredict(self, ckpt):
         y_test = self.y_test

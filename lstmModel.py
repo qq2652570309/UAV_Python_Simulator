@@ -41,14 +41,14 @@ class Cnn_Lstm_Model:
         cnn_model.add(Conv2D(16, kernel_size=(2, 2), activation='relu'))
         cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Conv2D(32, kernel_size=(2, 2), activation='relu'))
-        cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
         cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
         cnn_model.summary()
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(1024, input_shape=(30, 1152), dropout=0.0, return_sequences=True))
+        lstm_model.add(LSTM(2048, input_shape=(30, 2304), dropout=0.0, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
         lstm_model.summary()
@@ -71,7 +71,6 @@ class Cnn_Lstm_Model:
         print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
         lstm_input = TimeDistributed(cnn_model)(cnn_input)
         lstm_output = lstm_model(lstm_input)
-
 
         self.model = Model(inputs=cnn_input, outputs=lstm_output)
         self.y_train = y_train
@@ -145,7 +144,7 @@ class Cnn_Lstm_Model:
         
         self.model.fit(x_train, y_train,
                     epochs=self.epics,
-                    batch_size=8,
+                    batch_size=32,
                     shuffle=True,
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
@@ -210,7 +209,7 @@ class Cnn_Lstm_Model:
 
 
 
-CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 10)
+CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 CSM.train()
 # CSM.predict('uav-02-1.00', 0, -1)
 # CSM.meanDensityMap('uav-49-0.82')

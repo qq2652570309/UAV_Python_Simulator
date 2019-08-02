@@ -21,10 +21,10 @@ class Cnn_Lstm_Model:
         self.epics = epics
 
         uav_data = np.load(trs)
-        print('uav_data: ', uav_data.shape) # (10000, 30, 16, 16, 4)
+        print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
 
         uav_label = np.load(grt)
-        print('uav_label: ', uav_label.shape) # (10000, 16, 16)
+        print('uav_label: ', uav_label.shape) # (10000, 30, 32, 32)
 
         data_size = int(len(uav_data) * 0.85)
 
@@ -35,22 +35,23 @@ class Cnn_Lstm_Model:
 
 
         cnn_model = Sequential()
-        cnn_model.add(Conv2D(8, kernel_size=(3, 3),
+        cnn_model.add(Conv2D(8, kernel_size=(2, 2),
                         activation='relu',
-                        input_shape=(16, 16, 4)))
-        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
+                        input_shape=(32, 32, 4)))
+        cnn_model.add(Conv2D(16, kernel_size=(2, 2), activation='relu'))
+        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Conv2D(32, kernel_size=(2, 2), activation='relu'))
         cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
         cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
-        # cnn_model.summary()
+        cnn_model.summary()
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(512, input_shape=(30, 512), dropout=0.0, return_sequences=True))
-        lstm_model.add(TimeDistributed(Dense(256)))
-        lstm_model.add(TimeDistributed(Reshape((16, 16))))
-        # lstm_model.summary()
+        lstm_model.add(LSTM(1024, input_shape=(30, 1152), dropout=0.0, return_sequences=True))
+        lstm_model.add(TimeDistributed(Dense(1024)))
+        lstm_model.add(TimeDistributed(Reshape((32, 32))))
+        lstm_model.summary()
 
         # upsample_model = Sequential()
         # upsample_model.add(Reshape((16, 8, 8, 1), input_shape=(1, 1024)))
@@ -65,7 +66,7 @@ class Cnn_Lstm_Model:
         # upsample_model.add(Reshape((30, 16, 16)))
         # upsample_model.summary()
 
-         # cnn_input = (?, 30, 16, 16, 4)
+        # cnn_input = (?, 30, 32, 32, 4)
         cnn_input = Input(shape=uav_data[0].shape)
         print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
         lstm_input = TimeDistributed(cnn_model)(cnn_input)
@@ -114,7 +115,7 @@ class Cnn_Lstm_Model:
 
         self.model.compile(
             optimizer='adadelta',
-            loss=weighted_binary_crossentropy(2.4),
+            loss=weighted_binary_crossentropy(8.7),
             metrics=[recall]
             # loss='mean_squared_error',
             # metrics=[metrics.mae]
@@ -179,26 +180,39 @@ class Cnn_Lstm_Model:
         # y_test/ prediction : (1500, 30, 16, 16)
         prediction = np.round(np.clip(prediction, 0, 1))
 
-        prediction = prediction[:,:]
+        # p = np.sum(prediction, axis=1)
+        # p = p / prediction.shape[1]
+        # y = np.sum(y_test, axis=1)
+        # y = y / y_test.shape[1]
 
-        p = np.sum(prediction, axis=1)
-        p = p / prediction.shape[1]
-        y = np.sum(y_test, axis=1)
-        y = y / y_test.shape[1]
+        # for i in range(len(p)):
+        #     p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
 
-        for i in range(len(p)):
-            p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
-
-        for i in range(len(y)):
-            y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
+        # for i in range(len(y)):
+        #     y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
         
-        np.save('data/prediction.npy', p)
-        np.save('data/y_test.npy', y)
+        # np.save('data/prediction.npy', p)
+        # np.save('data/y_test.npy', y)
+        np.save('data/prediction.npy', prediction)
+        np.save('data/y_test.npy', y_test)
 
 
-CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 50)
-# CSM.train()
+    def generateCNNdata(self, ckpt):
+        uav_data = np.load("data/trainingSets_diff.npy")
+        print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
+
+        self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+        self.configure()
+        prediction = self.model.predict(uav_data)
+        cnnTrainingSets = np.round(np.clip(prediction, 0, 1))
+
+        np.save('data/cnnTrainingSets.npy', cnnTrainingSets)
+
+
+
+CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 10)
+CSM.train()
 # CSM.predict('uav-02-1.00', 0, -1)
-CSM.meanDensityMap('uav-49-0.82')
+# CSM.meanDensityMap('uav-49-0.82')
 
 

@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from tensorflow.python.ops import math_ops
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv2DTranspose
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv2DTranspose, UpSampling2D
 from tensorflow.keras.layers import Flatten, Activation, Reshape
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import BatchNormalization, LeakyReLU, TimeDistributed
@@ -19,12 +19,12 @@ class Cnn_Model:
     def __init__(self, trs=None, grt=None, epics=1):
         self.model = None
         self.epics = epics
-
+        
         uav_data = np.load(trs)
-        print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
+        print('uav_data: ', uav_data.shape) # (10000, 32, 32)
 
         uav_label = np.load(grt)
-        print('uav_label: ', uav_label.shape) # (10000, 30, 32, 32)
+        print('uav_label: ', uav_label.shape) # (10000, 32, 32)
 
         data_size = int(len(uav_data) * 0.85)
 
@@ -32,28 +32,20 @@ class Cnn_Model:
         (x_test, y_test) = uav_data[data_size:], uav_label[data_size:]
 
         cnn_model = Sequential()
-        cnn_model.add(Conv2D(64, kernel_size=(3, 3),
-                        activation='relu',
-                        input_shape=(30, 32, 32)))
-        cnn_model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(MaxPooling2D(pool_size=2))
-        # cnn_model.add(Conv1D(32, kernel_size=(2, 2), activation='relu'))
-        # cnn_model.add(Conv1D(64, kernel_size=(3, 3), activation='relu'))
-        # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Reshape((32,32,1),input_shape=(32, 32)))
+        cnn_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
+        cnn_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
+        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
-        cnn_model.add(Dense(23296))
-        cnn_model.add(Reshape((13, 14, 128)))
-        cnn_model.add(Conv2DTranspose(96, kernel_size=(5, 5), activation='relu'))
+        cnn_model.add(Dense(3136))
+        cnn_model.add(Reshape((14, 14, 16)))
+        cnn_model.add(UpSampling2D(size=(2,2)))
+        cnn_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2DTranspose(72, kernel_size=(5, 5), activation='relu'))
+        cnn_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2DTranspose(64, kernel_size=(5, 5), activation='relu'))
-        cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2DTranspose(48, kernel_size=(4, 4), activation='relu'))
-        cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2DTranspose(32, kernel_size=(3, 4), activation='relu'))
-        cnn_model.add(BatchNormalization())
-        cnn_model.summary()
+        cnn_model.add(Reshape((32,32)))
+        # cnn_model.summary()
 
         cnn_input = Input(shape=uav_data[0].shape)
         cnn_output = cnn_model(cnn_input)
@@ -115,5 +107,5 @@ class Cnn_Model:
 
 
 CSM = Cnn_Model("data/cnnTrainingSets.npy", "data/groundTruths_diff.npy", 3)
-CSM.train()
+# CSM.train()
 # CSM.meanDensityMap('uav-49-0.82')

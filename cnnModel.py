@@ -100,12 +100,12 @@ class Cnn_Model:
         self.configure()
         prediction = self.model.predict(x_test)
         
-        prediction = np.round(np.clip(prediction, 0, 1))
+        # prediction = np.round(np.clip(prediction, 0, 1))
 
         np.save('data/cnn/prediction.npy', prediction)
         np.save('data/cnn/y_test.npy', y_test)
 
 
-CSM = Cnn_Model("data/cnnTrainingSets.npy", "data/groundTruths_diff.npy", 3)
+CSM = Cnn_Model("data/density_data.npy", "data/density_label.npy", 10)
 # CSM.train()
-# CSM.meanDensityMap('uav-49-0.82')
+CSM.lstmPredict('uav-04-0.01')

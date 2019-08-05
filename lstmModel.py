@@ -186,8 +186,8 @@ class Cnn_Lstm_Model:
         for i in range(len(y)):
             y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
         
-        np.save('data/prediction.npy', p)
-        np.save('data/y_test.npy', y)
+        np.save('data/density_data.npy', p)
+        np.save('data/density_label.npy', y)
 
 
     def generateCNNdata(self, ckpt):
@@ -204,6 +204,6 @@ class Cnn_Lstm_Model:
 
 CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 # CSM.train()
-CSM.meanDensityMap("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 'uav-49-0.82')
+CSM.meanDensityMap("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 'uav-03-0.99')
 
 

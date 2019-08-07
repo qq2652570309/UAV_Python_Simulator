@@ -9,8 +9,6 @@ class MyDenseLayer(tf.keras.layers.Layer):
   def __init__(self, num_outputs):
     super(MyDenseLayer, self).__init__()
     self.num_outputs = num_outputs
-    print('************ num_outputs: ', self.num_outputs)
-
 
   def call(self, input):
     return K.sum(input, axis=1)

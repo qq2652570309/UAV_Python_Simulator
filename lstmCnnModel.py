@@ -12,6 +12,15 @@ import numpy as np
 os.environ["CUDA_VISIBLE_DEVICES"]="2"
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+
+class MySumLayer(tf.keras.layers.Layer):
+    def __init__(self, num_outputs):
+        super(MySumLayer, self).__init__()
+        self.num_outputs = num_outputs
+    
+    def call(self, input):
+        return K.sum(input, axis=1)
+
 class Lstm_Cnn_Model:
     def __init__(self, trs=None, grt=None, epics=1):
         self.model = None
@@ -54,6 +63,7 @@ class Lstm_Cnn_Model:
         lstm_model.add(LSTM(2048, input_shape=(30, 2304), dropout=0.0, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
+        lstm_model.add(MySumLayer((32, 32)))
         lstm_model.summary()
 
 
@@ -107,7 +117,7 @@ class Lstm_Cnn_Model:
                 # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
                 # monitor='val_recall',
                 # mode='max',
-                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                filepath=os.path.join("checkpoints", "lstm","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
                 monitor='val_mean_absolute_error',
                 mode='min',
                 save_best_only=True,
@@ -122,3 +132,9 @@ class Lstm_Cnn_Model:
                     shuffle=True,
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
+
+CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
+# CSM.loadData()
+CSM.initModel()
+# CSM.configure()
+# CSM.train()

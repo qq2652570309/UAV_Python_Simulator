@@ -78,12 +78,14 @@ class Preprocess:
 
     # broadcast one sample to many 
     def broadCast(self):
-        self.tsr = np.broadcast_to(self.tsr, (10000, 30, 16, 16, 4))
-        self.gtr = np.broadcast_to(self.gtr, (10000, 30, 16, 16))
+        self.tsr = np.broadcast_to(self.tsr, (10000, 30, 32, 32, 4))
+        self.gtr = np.broadcast_to(self.gtr, (10000, 30, 32, 32))
         print(self.tsr.shape)
         print(self.gtr.shape)
         print('broadCast complete\n')
         
+    # def generateDensity(self):
+        # self
 
     def saveData(self):
         np.save('data/trainingSets_diff.npy', self.tsr)
@@ -109,4 +111,4 @@ p.oneOrZero()
 p.computeWeights()
 # p.broadCast()
 p.checkGroundTruthIdentical()
-p.saveData()
+# p.saveData()

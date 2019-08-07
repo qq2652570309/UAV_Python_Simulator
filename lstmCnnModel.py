@@ -64,6 +64,7 @@ class Lstm_Cnn_Model:
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
         lstm_model.add(MySumLayer((32, 32)))
+        lstm_model.add(BatchNormalization())
         lstm_model.summary()
 
 
@@ -117,7 +118,7 @@ class Lstm_Cnn_Model:
                 # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
                 # monitor='val_recall',
                 # mode='max',
-                filepath=os.path.join("checkpoints", "lstm","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                filepath=os.path.join("checkpoints", "lstmCnn","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
                 monitor='val_mean_absolute_error',
                 mode='min',
                 save_best_only=True,
@@ -133,8 +134,8 @@ class Lstm_Cnn_Model:
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
 
-CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
-# CSM.loadData()
+CSM = Lstm_Cnn_Model("data/lstmCnn/trainingSets_diff.npy", "data/lstmCnn/groundTruths_diff.npy", 3)
+CSM.loadData()
 CSM.initModel()
-# CSM.configure()
-# CSM.train()
+CSM.configure()
+CSM.train()

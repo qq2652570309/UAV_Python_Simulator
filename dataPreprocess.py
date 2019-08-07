@@ -84,12 +84,15 @@ class Preprocess:
         print(self.gtr.shape)
         print('broadCast complete\n')
         
-    # def generateDensity(self):
-        # self
+    # (30, 32, 32) --> (32, 32)
+    def generateDensity(self):
+        self.gtr = np.sum(self.gtr, axis=1)
+        print(self.gtr.shape)
+        print('generateDensity complete\n')
 
     def saveData(self):
-        np.save('data/trainingSets_diff.npy', self.tsr)
-        np.save('data/groundTruths_diff.npy', self.gtr)
+        np.save('data/lstmCnn/trainingSets_diff.npy', self.tsr)
+        np.save('data/lstmCnn/groundTruths_diff.npy', self.gtr)
         print('save complete\n')
 
     def checkGroundTruthIdentical(self):
@@ -108,7 +111,9 @@ p = Preprocess()
 # p.split()
 p.from30toEnd()
 p.oneOrZero()
-p.computeWeights()
+p.generateDensity()
+p.batchNormalize()
+# p.computeWeights()
 # p.broadCast()
 p.checkGroundTruthIdentical()
-# p.saveData()
+p.saveData()

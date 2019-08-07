@@ -78,8 +78,8 @@ class Lstm_Cnn_Model:
             return w_binary_crossentropy
 
         def recall(y_true, y_pred):
-            y_true = math_ops.cast(y_true, 'float32')
-            y_pred = math_ops.cast(y_pred, 'float32')
+            y_true = tf.cast(y_true, 'float32')
+            y_pred = tf.cast(y_pred, 'float32')
             true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
             possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
             recall = true_positives / (possible_positives + K.epsilon())

@@ -26,12 +26,12 @@ class Simulator:
 
     def generate(self):
         startTimeTotal = time.time()
-        startPositions, endPositions = self.generateLaunchingPoints()
         
         for index in range(self.iteration):
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
-
+            startPositions, endPositions = self.generateLaunchingPoints()
+            
             for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
                 # set traning sets
@@ -43,6 +43,7 @@ class Simulator:
 
                     succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
                     if succ:
+                        np.random.shuffle(endPositions)
                         endRow, endCol  = random.choice(endPositions)
                         remainingTime = self.time - currentTime
                         
@@ -151,7 +152,8 @@ class Simulator:
             p = np.random.uniform(0.2, 0.8)
             launchingArea[i,:,2] = p
         launchingArea = np.concatenate(launchingArea, axis=0)
-        
+        np.random.shuffle(launchingArea)
+        np.random.shuffle(destination)
         return launchingArea, destination
         
 

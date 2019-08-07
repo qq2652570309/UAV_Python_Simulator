@@ -114,10 +114,10 @@ class Cnn_Lstm_Model:
 
         self.model.compile(
             optimizer='adadelta',
-            loss=weighted_binary_crossentropy(8.7),
-            metrics=[recall]
-            # loss='mean_squared_error',
-            # metrics=[metrics.mae]
+            # loss=weighted_binary_crossentropy(8.7),
+            # metrics=[recall]
+            loss='mean_squared_error',
+            metrics=[metrics.mae]
         )
         
 
@@ -131,12 +131,12 @@ class Cnn_Lstm_Model:
         callbacks = []
         callbacks.append(
             ModelCheckpoint(
-                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
-                monitor='val_recall',
-                mode='max',
-                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
-                # monitor='val_mean_absolute_error',
-                # mode='min',
+                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
+                # monitor='val_recall',
+                # mode='max',
+                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                monitor='val_mean_absolute_error',
+                mode='min',
                 save_best_only=True,
                 save_weights_only=True,
                 verbose=True
@@ -168,26 +168,27 @@ class Cnn_Lstm_Model:
         uav_data = np.load(trs)
         self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
         self.configure()
+        uav_data = uav_data[:5]
         prediction = self.model.predict(uav_data)
         
         # y_test/ prediction : (1500, 30, 16, 16)
-        prediction = np.round(np.clip(prediction, 0, 1))
+        # prediction = np.round(np.clip(prediction, 0, 1))
 
-        prediction = prediction[:,25:]
+        # prediction = prediction[:,25:]
 
-        p = np.sum(prediction, axis=1)
-        p = p / prediction.shape[1]
-        y = np.sum(uav_label, axis=1)
-        y = y / uav_label.shape[1]
+        # p = np.sum(prediction, axis=1)
+        # p = p / prediction.shape[1]
+        # y = np.sum(uav_label, axis=1)
+        # y = y / uav_label.shape[1]
 
-        for i in range(len(p)):
-            p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
+        # for i in range(len(p)):
+        #     p[i] = (p[i] - np.min(p[i])) / (np.max(p[i]) - np.min(p[i]))
 
-        for i in range(len(y)):
-            y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
+        # for i in range(len(y)):
+        #     y[i] = (y[i] - np.min(y[i])) / (np.max(y[i]) - np.min(y[i]))
         
-        np.save('data/density_data.npy', p)
-        np.save('data/density_label.npy', y)
+        np.save('data/lstm/testPrediction.npy', prediction)
+        # np.save('data/lstm/density_label.npy', y)
 
 
     def generateCNNdata(self, ckpt):
@@ -204,6 +205,6 @@ class Cnn_Lstm_Model:
 
 CSM = Cnn_Lstm_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 # CSM.train()
-CSM.meanDensityMap("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 'uav-03-0.99')
+CSM.meanDensityMap("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 'uav-03-0.08')
 
 

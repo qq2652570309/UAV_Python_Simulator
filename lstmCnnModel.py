@@ -1,6 +1,6 @@
 import os
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM, Conv3DTranspose
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, LSTM,  Conv2DTranspose, UpSampling2D
 from tensorflow.keras.layers import Flatten, Activation, Reshape
 from tensorflow.keras.layers import BatchNormalization, LeakyReLU, TimeDistributed
 from tensorflow.keras.models import Model, Sequential
@@ -66,7 +66,21 @@ class Lstm_Cnn_Model:
         lstm_model.add(MySumLayer((32, 32)))
         lstm_model.add(BatchNormalization())
         lstm_model.summary()
-
+        
+        lstm_model.add(Reshape((32,32,1)))
+        lstm_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
+        lstm_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
+        lstm_model.add(MaxPooling2D(pool_size=(2,2)))
+        lstm_model.add(Flatten())
+        lstm_model.add(Dense(3136))
+        lstm_model.add(Reshape((14, 14, 16)))
+        lstm_model.add(UpSampling2D(size=(2,2)))
+        lstm_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
+        lstm_model.add(BatchNormalization())
+        lstm_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
+        lstm_model.add(BatchNormalization())
+        lstm_model.add(Reshape((32,32)))
+        lstm_model.summary()
 
         cnn_input = Input(shape=(30,32,32,4))
         print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)

@@ -91,8 +91,8 @@ class Preprocess:
         print('generateDensity complete\n')
 
     def saveData(self):
-        np.save('data/lstmCnn/trainingSets_diff.npy', self.tsr)
-        np.save('data/lstmCnn/groundTruths_diff.npy', self.gtr)
+        np.save('data/trainingSets_diff.npy', self.tsr)
+        np.save('data/groundTruths_diff.npy', self.gtr)
         print('save complete\n')
 
     def checkGroundTruthIdentical(self):
@@ -115,5 +115,5 @@ p.generateDensity()
 p.batchNormalize()
 # p.computeWeights()
 # p.broadCast()
-p.checkGroundTruthIdentical()
+# p.checkGroundTruthIdentical()
 p.saveData()

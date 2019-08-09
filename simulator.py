@@ -32,7 +32,6 @@ class Simulator:
             logging.info('At {0} iteration'.format(index))
             
             for currentTime in range(self.time):
-                logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
                 # startPositions, endPositions = self.generateLaunchingPoints()
                 startPoints = self.choosePoints(self.startPointsNum)
                 startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
@@ -40,10 +39,11 @@ class Simulator:
                 endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
 
                 for startRow, startCol in startPositions:
+                    logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
                     # set traning sets
                     startRow = int(startRow)
                     startCol = int(startCol)
-                    self.trainingSets[index,:-1,startRow,startCol,1] = np.random.uniform(0, 1)
+                    self.trainingSets[index,:-1,startRow,startCol,1] = np.random.uniform(0, 0.3)
                     # generate ground truth
                 
                     succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
@@ -171,7 +171,7 @@ logging.info('Started')
 startTimeIter = time.time()
 # s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
 # s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
-s = Simulator(iteration=10000, row=32, column=32, time=120, startPointsNum=12, endPointsNum=12)
+s = Simulator(iteration=10, row=32, column=32, time=120, startPointsNum=4, endPointsNum=4)
 s.generate()
 # s.dataProcess()
 logging.info('Finished')

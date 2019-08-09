@@ -1,7 +1,7 @@
 import numpy as np
 
-y = np.load('data/cnn/y_test.npy')
-p = np.load('data/cnn/prediction.npy')
+y = np.load('data/y_test.npy')
+p = np.load('data/prediction.npy')
 
 print(y.shape)
 print(p.shape)
@@ -37,4 +37,4 @@ for i in range(1, n+1):
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(True)
 # plt.show()
-plt.savefig("img/density_with_label.png")
+plt.savefig("img/density_32_32.png")

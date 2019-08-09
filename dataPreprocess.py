@@ -31,8 +31,8 @@ class Preprocess:
     def from30toEnd(self):
         # self.gtr = self.gtr[:1, 30:]
         # self.tsr = self.tsr[:1, 30:]
-        self.gtr = self.gtr[:, 30:]
-        self.tsr = self.tsr[:, 30:]
+        self.gtr = self.gtr[:, 20:]
+        self.tsr = self.tsr[:, 20:]
         print(self.tsr.shape)
         print(self.gtr.shape)
         print('from30toEnd complete\n')

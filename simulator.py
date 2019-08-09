@@ -30,17 +30,22 @@ class Simulator:
         for index in range(self.iteration):
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
-            startPositions, endPositions = self.generateLaunchingPoints()
             
-            for startRow, startCol, launchingRate in startPositions:
+            for currentTime in range(self.time):
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
-                # set traning sets
-                startRow = int(startRow)
-                startCol = int(startCol)
-                self.trainingSets[index,:-1,startRow,startCol,1] = launchingRate
-                # generate ground truth
-                for currentTime in range(self.time):
+                # startPositions, endPositions = self.generateLaunchingPoints()
+                startPoints = self.choosePoints(self.startPointsNum)
+                startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
+                endPoints = self.choosePoints(self.endPointsNum)
+                endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
 
+                for startRow, startCol in startPositions:
+                    # set traning sets
+                    startRow = int(startRow)
+                    startCol = int(startCol)
+                    self.trainingSets[index,:-1,startRow,startCol,1] = np.random.uniform(0, 1)
+                    # generate ground truth
+                
                     succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
                     if succ:
                         np.random.shuffle(endPositions)
@@ -155,5 +160,25 @@ class Simulator:
         np.random.shuffle(launchingArea)
         np.random.shuffle(destination)
         return launchingArea, destination
+
+
+logger = logging.getLogger()
+logger.disabled = True
+
+logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
+
+logging.info('Started')
+startTimeIter = time.time()
+# s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
+# s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
+s = Simulator(iteration=10000, row=32, column=32, time=120, startPointsNum=12, endPointsNum=12)
+s.generate()
+# s.dataProcess()
+logging.info('Finished')
+np.save('data/trainingSets_raw.npy', s.trainingSets)
+np.save('data/groundTruths_raw.npy', s.groundTruths)
+print('total time: ', time.time() - startTimeIter)
+# logging.info('trainingSets: \n{0}'.format(s.trainingSets))
+# logging.info('groundTruths: \n{0}'.format(s.groundTruths))
         
 

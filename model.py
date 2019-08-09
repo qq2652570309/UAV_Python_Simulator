@@ -13,9 +13,9 @@ os.environ["CUDA_VISIBLE_DEVICES"]="2"
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-class MySumLayer(tf.keras.layers.Layer):
+class SumLayer(tf.keras.layers.Layer):
     def __init__(self, num_outputs):
-        super(MySumLayer, self).__init__()
+        super(SumLayer, self).__init__()
         self.num_outputs = num_outputs
     
     def call(self, input):
@@ -44,7 +44,7 @@ class Lstm_Cnn_Model:
         self.y_test = y_test
         self.x_test = x_test
 
-    def initModel(self):
+    def layers(self):
 
         cnn_model = Sequential()
         cnn_model.add(Conv2D(8, kernel_size=(2, 2),
@@ -60,10 +60,10 @@ class Lstm_Cnn_Model:
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(2048, input_shape=(30, 2304), dropout=0.0, return_sequences=True))
+        lstm_model.add(LSTM(2048, input_shape=(100, 2304), dropout=0.0, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
-        lstm_model.add(MySumLayer((32, 32)))
+        lstm_model.add(SumLayer((32, 32)))
         lstm_model.add(BatchNormalization())
         lstm_model.summary()
         
@@ -82,7 +82,7 @@ class Lstm_Cnn_Model:
         lstm_model.add(Reshape((32,32)))
         lstm_model.summary()
 
-        cnn_input = Input(shape=(30,32,32,4))
+        cnn_input = Input(shape=(100,32,32,4))
         print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
         lstm_input = TimeDistributed(cnn_model)(cnn_input)
         lstm_output = lstm_model(lstm_input)
@@ -132,7 +132,7 @@ class Lstm_Cnn_Model:
                 # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
                 # monitor='val_recall',
                 # mode='max',
-                filepath=os.path.join("checkpoints", "lstmCnn","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
                 monitor='val_mean_absolute_error',
                 mode='min',
                 save_best_only=True,
@@ -148,8 +148,17 @@ class Lstm_Cnn_Model:
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
 
-CSM = Lstm_Cnn_Model("data/lstmCnn/trainingSets_diff.npy", "data/lstmCnn/groundTruths_diff.npy", 3)
+
+    def imageData(self, ckpt):
+        self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+        self.configure()
+        prediction = self.model.predict(self.x_test)
+        
+        np.save('data/prediction.npy', prediction)
+        np.save('data/y_test.npy', self.y_test)
+
+CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 10)
 CSM.loadData()
-CSM.initModel()
-CSM.configure()
-CSM.train()
+CSM.layers()
+# CSM.train()
+# CSM.imageData('uav-06-0.01')

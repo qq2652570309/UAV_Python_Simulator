@@ -69,7 +69,8 @@ class Preprocess:
 
     # nomalize groud truth as the last second
     def batchNormalize(self):
-        self.gtr = (self.gtr - np.min(self.gtr)) / (np.max(self.gtr) - np.min(self.gtr))
+        for i in range(len(self.gtr)):
+            self.gtr[i] = (self.gtr[i] - np.min(self.gtr[i])) / (np.max(self.gtr[i]) - np.min(self.gtr[i]))
         print('min: ', np.min(self.gtr))
         print('max: ', np.max(self.gtr))
         print('mean: ', np.mean(self.gtr))

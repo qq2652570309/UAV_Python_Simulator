@@ -22,9 +22,10 @@ class SumLayer(tf.keras.layers.Layer):
         return K.sum(input, axis=1)
 
 class Lstm_Cnn_Model:
-    def __init__(self, trs=None, grt=None, epics=1):
+    def __init__(self, trs=None, grt=None, epics=1, weight=1):
         self.model = None
         self.epics = epics
+        self.weight = weight
         self.trainingSets = trs
         self.grourndTruth = grt
 
@@ -90,7 +91,6 @@ class Lstm_Cnn_Model:
         self.model = Model(inputs=cnn_input, outputs=lstm_output)
 
 
-
     def configure(self):
         def weighted_binary_crossentropy(weights):
             def w_binary_crossentropy(y_true, y_pred):
@@ -112,7 +112,7 @@ class Lstm_Cnn_Model:
 
         self.model.compile(
             optimizer='adadelta',
-            # loss=weighted_binary_crossentropy(8.7),
+            # loss=weighted_binary_crossentropy(self.weight),
             # metrics=[recall]
             loss='mean_squared_error',
             metrics=[metrics.mae]
@@ -157,8 +157,8 @@ class Lstm_Cnn_Model:
         np.save('data/prediction.npy', prediction)
         np.save('data/y_test.npy', self.y_test)
 
-CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 10)
+CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 CSM.loadData()
 CSM.layers()
 # CSM.train()
-# CSM.imageData('uav-06-0.01')
+CSM.imageData('uav-03-0.39')

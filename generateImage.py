@@ -9,7 +9,7 @@ print(p.shape)
 
 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 n = 10
@@ -45,5 +45,5 @@ for i in range(1, n+1):
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(True)
 
-plt.show()
-# plt.savefig("img/density_32_32.png")
+# plt.show()
+plt.savefig("img/density_32_32.png")

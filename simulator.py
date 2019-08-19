@@ -22,6 +22,8 @@ class Simulator:
         # 2nd and 3rd is (x, y) postion of destination point
         self.trainingSets = np.zeros(shape=(self.iteration, self.time, self.row, self.column, 4), dtype=np.float32)
         self.groundTruths = np.zeros(shape=(self.iteration, self.time, self.row, self.column), dtype=np.float32)
+        # record all launching and landing postions
+        self.positions = np.zeros(shape=(self.iteration, 32, 32), dtype=np.float32)
         logging.info('finish init\n')
 
 
@@ -33,11 +35,11 @@ class Simulator:
             logging.info('At {0} iteration'.format(index))
 
             startPositions, endPositions = self.generatePositions()
+            self.setColor(index, startPositions, endPositions)
             # startPoints = self.choosePoints(self.startPointsNum)
             # startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
             # endPoints = self.choosePoints(self.endPointsNum)
             # endPositions = list(map(lambda x: (x//self.column, x%self.column), endPoints))
-            
 
             for startRow, startCol in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
@@ -120,51 +122,10 @@ class Simulator:
                 return False
         return True
 
-    def generateLaunchingPoints(self):
-        launchingPoints1 = np.array([
-            [15, 0, 0],
-            [15, 2, 0],
-            [16, 0, 0],
-            [16, 2, 0],  
-        ])
-
-        launchingPoints2 = np.array([
-            [7, 10, 0],
-            [7, 11, 0],
-            [8, 10, 0],
-            [8, 11, 0],
-        ])
-
-        launchingPoint3 = np.array([
-            [23, 29, 0],
-            [23, 30, 0],
-            [24, 29, 0],
-            [24, 30, 0],
-        ])
-
-        destination = np.array([
-            [30, 9],
-            [30, 10],
-            [31, 9],
-            [31, 10],
-            [7, 22],
-            [7, 25],
-            [9, 22],
-            [9, 25],
-            [30, 9],
-            [30, 10],
-            [31, 9],
-            [31, 10],
-        ])
-
-        launchingArea = np.array([launchingPoints1, launchingPoints2, launchingPoint3], dtype=np.float32)
-        for i in range(len(launchingArea)):
-            p = np.random.uniform(0.2, 0.8)
-            launchingArea[i,:,2] = p
-        launchingArea = np.concatenate(launchingArea, axis=0)
-        np.random.shuffle(launchingArea)
-        np.random.shuffle(destination)
-        return launchingArea, destination
+    def setColor(self, index, startPositions, endPositions):
+        for sp, ep in zip(startPositions, endPositions):
+            self.positions[index, sp[0], sp[1]] = 0.2
+            self.positions[index, ep[0], ep[1]] = 0.5
 
 
 logger = logging.getLogger()
@@ -182,6 +143,7 @@ s.generate()
 logging.info('Finished')
 np.save('data/trainingSets_raw.npy', s.trainingSets)
 np.save('data/groundTruths_raw.npy', s.groundTruths)
+np.save('data/positions.npy', s.positions)
 print('total time: ', time.time() - startTimeIter)
 # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
 # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

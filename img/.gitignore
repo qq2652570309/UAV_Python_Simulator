@@ -12,7 +12,7 @@ test.py
 
 *.zip
 
-test*
+test*.py
 
 log.*
 

@@ -2,7 +2,6 @@ import numpy as np
 
 y = np.load('data/y_test.npy')
 p = np.load('data/prediction.npy')
-s = np.load('data/positions.npy')
 
 print(y.shape)
 print(p.shape)
@@ -35,13 +34,6 @@ for i in range(1, n+1):
         ax.set_ylabel(rowHeader[1], rotation=90, size='large')
     plt.imshow(p[i-1])
     plt.gray()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(True)
-
-    ax = plt.subplot(3, n, i + 2*n)
-    if i == 1:
-        ax.set_ylabel(rowHeader[2], rotation=90, size='large')
-    plt.imshow(s[i-1], cmap=plt.cm.gnuplot)
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(True)
 

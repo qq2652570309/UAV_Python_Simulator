@@ -85,8 +85,8 @@ class Preprocess:
         print('generateDensity complete\n')
 
     def saveData(self):
-        np.save('data/trainingSets_diff.npy', self.tsr)
-        np.save('data/groundTruths_diff.npy', self.gtr)
+        np.save('data/lstm_trainingSets.npy', self.tsr)
+        np.save('data/lstm_groundTruths.npy', self.gtr)
         print('trainingSets shape', self.tsr.shape)
         print('groundTruths shape', self.gtr.shape)
         print('save complete\n')

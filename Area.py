@@ -47,52 +47,55 @@ blockArea = [
     [18, 6],
 ]
 
+
 class Area:
-    def __init__(self):
-        self.la = np.concatenate(launchingArea, axis=0)
-        self.da = np.concatenate(destinationArea, axis=0)
+    def __init__(self, launchingArea, destinationArea, blockArea=None):
+        # self.la = np.concatenate(launchingArea, axis=0)
+        # self.da = np.concatenate(destinationArea, axis=0)
+        # self.ba = blockArea
+        self.la = self.createArea(launchingArea)
+        self.da = self.createArea(destinationArea)
         self.ba = blockArea
 
-    def getLaunchPoint(self, n, low=0, high=1):
-        np.random.shuffle(self.la)
-        if n == 'random':
-            n = int(np.round(np.random.uniform(0, len(self.la))))
-        if n == 'all':
-            n = len(self.la)
+    def createArea(self, vertices):
         result = []
-        for n in range(n):
-            point = random.choice(self.la)
-            point = np.append(point, np.random.uniform(low, high))
+        for vertex in vertices:
+            start = vertex[0]
+            end = vertex[1]
+            for row in range(start[0],end[0]+1):
+                for col in range(start[1],end[1]+1):
+                    result.append([row,col])
+        return result
+
+    def getLaunchPoint(self, low=0, high=1):
+        result = []
+        possiblity = 0
+        for i in range(len(self.la)):
+            if i % 9 == 0:
+                possiblity = np.random.uniform(low, high)
+                # print(self.la[i])
+            point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
-        return np.array(result)
+        return np.random.permutation(result)
     
-    def getDestination(self, n):
-        np.random.shuffle(self.da)
-        if n == 'all':
-            return self.da
-        else:
-            point = random.choice(self.da)
-            return point[0], point[1]
+    def getDestination(self):
+        return np.random.permutation(self.da)
     
-    def getBlockPoint(self, n):
-        np.random.shuffle(self.ba)
-        if n == 'random':
-            n = int(np.round(np.random.uniform(0, len(self.ba))))
-        if n == 'all':
-            return self.ba
-        result = []
-        for n in range(n):
-            point = random.choice(self.ba)
-            result.append(point)
-        return np.array(result)
+    def getBlockPoint(self):
+        return np.random.permutation(self.ba)
+        
     
     def image(self, size, save=False):
         fig, axs = plt.subplots(1, 3, figsize=(10, 3))
         plt.gray()
-        for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [self.la, self.da, self.ba]):
+        la = self.getLaunchPoint()
+        la = la[:,:2]
+        da = self.getDestination()
+        ba = self.getBlockPoint()
+        for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
             A = np.zeros((size,size))
             for p in area:
-                A[p[0], p[1]] = 1
+                A[int(p[0]), int(p[1])] = 1
             ax.imshow(A)
             ax.set_title(title)
             ax.get_xaxis().set_visible(False)
@@ -100,9 +103,6 @@ class Area:
         if save == True:
             plt.savefig("img/result.png")
 
-a = Area()
-# lp = a.getLaunchPoint('random')
-# dp = a.getDestination('random')
-# bp = a.getBlockPoint('random')
+a = Area(launchingArea, destinationArea, blockArea)
 
-a.image(32)
+a.image(32, True)

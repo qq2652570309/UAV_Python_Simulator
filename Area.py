@@ -49,7 +49,7 @@ blockArea = [
 
 
 class Area:
-    def __init__(self, launchingArea, destinationArea, blockArea=None):
+    def __init__(self):
         # self.la = np.concatenate(launchingArea, axis=0)
         # self.da = np.concatenate(destinationArea, axis=0)
         # self.ba = blockArea
@@ -78,8 +78,11 @@ class Area:
             result.append(np.round(point, decimals=2))
         return np.random.permutation(result)
     
-    def getDestination(self):
-        return np.random.permutation(self.da)
+    def getDestination(self, allPoints=False):
+        if allPoints:
+            return self.da
+        result = random.choice(np.random.permutation(self.da))
+        return result[0], result[1]
     
     def getBlockPoint(self):
         return np.random.permutation(self.ba)
@@ -90,7 +93,7 @@ class Area:
         plt.gray()
         la = self.getLaunchPoint()
         la = la[:,:2]
-        da = self.getDestination()
+        da = self.getDestination(allPoints=True)
         ba = self.getBlockPoint()
         for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
             A = np.zeros((size,size))
@@ -103,6 +106,7 @@ class Area:
         if save == True:
             plt.savefig("img/result.png")
 
-a = Area(launchingArea, destinationArea, blockArea)
-
+a = Area()
+for x in range(10):
+    print(a.getDestination())
 a.image(32, True)

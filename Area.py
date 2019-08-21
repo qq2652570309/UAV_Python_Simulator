@@ -106,7 +106,7 @@ class Area:
         if save == True:
             plt.savefig("img/result.png")
 
-a = Area()
-for x in range(10):
-    print(a.getDestination())
-a.image(32, True)
+# a = Area()
+# for x in range(10):
+    # print(a.getDestination())
+# a.image(32, True)

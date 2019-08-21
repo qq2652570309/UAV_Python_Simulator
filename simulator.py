@@ -38,7 +38,7 @@ class Simulator:
             logging.info('At {0} iteration'.format(index))
                     
             # startPositions, endPositions = self.generatePositions() 
-            startPositions = self.area.getLaunchPoint(low=0.1, high=0.3) # --- here get startPositions, endPositions 
+            startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
 
             for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
@@ -138,7 +138,7 @@ logging.info('Started')
 startTimeIter = time.time()
 # s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
 # s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
-s = Simulator(iteration=3, row=32, column=32, time=120, startPointsNum=12, endPointsNum=12, timeInterval=5)
+s = Simulator(iteration=100, row=32, column=32, time=120, startPointsNum=12, endPointsNum=12, timeInterval=5)
 s.generate()
 
 logging.info('Finished')

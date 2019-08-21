@@ -147,5 +147,3 @@ np.save('data/positions.npy', s.positions)
 print('total time: ', time.time() - startTimeIter)
 # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
 # logging.info('groundTruths: \n{0}'.format(s.groundTruths))
-        
-

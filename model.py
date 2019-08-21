@@ -152,20 +152,13 @@ class Lstm_Cnn_Model:
     def imageData(self, ckpt):
         self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
         self.configure()
-
-        x = np.load("data/trainingSets_diff.npy")
-        y = np.load("data/groundTruths_diff.npy")
-
-        result = self.model.evaluate(x,y, batch_size=1)
-        print('result: ', result)
-
-        prediction = self.model.predict(x)
+        prediction = self.model.predict(self.x_test)
         
         np.save('data/prediction.npy', prediction)
-        np.save('data/y_test.npy', y)
+        np.save('data/y_test.npy', self.y_test)
 
-CSM = Lstm_Cnn_Model("data/lstm_trainingSets.npy", "data/lstm_groundTruths.npy", 10)
+CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
 CSM.loadData()
 CSM.layers()
-CSM.train()
-# CSM.imageData('uav-10-0.11')
+# CSM.train()
+CSM.imageData('uav-03-0.39')

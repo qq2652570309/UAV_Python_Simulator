@@ -115,7 +115,8 @@ class Lstm_Cnn_Model:
             # loss=weighted_binary_crossentropy(self.weight),
             # metrics=[recall]
             loss='mean_squared_error',
-            metrics=[metrics.mae]
+            # metrics=[metrics.mae]
+            metrics=['acc']
         )
 
 
@@ -152,13 +153,20 @@ class Lstm_Cnn_Model:
     def imageData(self, ckpt):
         self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
         self.configure()
-        prediction = self.model.predict(self.x_test)
+
+        x = np.load("data/trainingSets_diff.npy")
+        y = np.load("data/groundTruths_diff.npy")
+
+        result = self.model.evaluate(x,y, batch_size=1)
+        print('result: ', result)
+
+        prediction = self.model.predict(x)
         
         np.save('data/prediction.npy', prediction)
-        np.save('data/y_test.npy', self.y_test)
+        np.save('data/y_test.npy', y)
 
-CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
+CSM = Lstm_Cnn_Model("data/lstm_trainingSets.npy", "data/lstm_groundTruths.npy", 10)
 CSM.loadData()
 CSM.layers()
-# CSM.train()
-CSM.imageData('uav-03-0.39')
+CSM.train()
+# CSM.imageData('uav-10-0.11')

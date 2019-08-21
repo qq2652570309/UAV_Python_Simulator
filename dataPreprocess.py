@@ -59,7 +59,6 @@ class Preprocess:
         print('weight:',zero/one)
         print('computeWeights complete\n')
 
-
     # nomalize groud truth as the last second
     def batchNormalize(self):
         for i in range(len(self.gtr)):
@@ -96,6 +95,20 @@ class Preprocess:
         for i in range(1,5):
             print(np.all(self.gtr[p[i]] == self.gtr[p[i-1]]))
         print('check complete\n')
+
+    def averageLaunchingNumber(self):
+        sum1 = np.sum(self.tsr[:,:, 0:4, 0:4, 0])
+        sum2 = np.sum(self.tsr[:,:, 22:26, 23:26, 0])
+        sum3 = np.sum(self.tsr[:,:, 27:31, 27:31, 0])
+        sampleNum = self.tsr.shape[0]
+        timeTotal = self.tsr.shape[1]
+        ave1 = sum1 / sampleNum / timeTotal * 5
+        ave2 = sum2 / sampleNum / timeTotal * 5
+        ave3 = sum3 / sampleNum / timeTotal * 5
+        print('In area1, average number of UAV launched: ', ave1)
+        print('In area2, average number of UAV launched: ', ave2)
+        print('In area3, average number of UAV launched: ', ave3)
+
 
 p = Preprocess()
 p.splitByTime(20)

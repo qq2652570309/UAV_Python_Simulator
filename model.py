@@ -115,8 +115,7 @@ class Lstm_Cnn_Model:
             # loss=weighted_binary_crossentropy(self.weight),
             # metrics=[recall]
             loss='mean_squared_error',
-            # metrics=[metrics.mae]
-            metrics=['acc']
+            metrics=[metrics.mae]
         )
 
 

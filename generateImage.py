@@ -13,25 +13,25 @@ class Image:
         n = 10
         plt.figure(figsize=(20, 6))
         for index in range(len(self.data)):
-            if '.npy' in x:
-                x = np.load(data[index])
+            if '.npy' in self.data[index]:
+                x = np.load(self.data[index])
             else:
-                x = data[index]
+                x = self.data[index]
             print(x.shape)
             for i in range(1, n+1):
                 # display original
                 ax = plt.subplot(3, n, i + index*n)
                 ax.set_title(self.colHeader[i-1])
                 if i == 1:
-                    ax.set_ylabel(rowHeader[index], rotation=90, size='large')
-                if rowHeader[index]=='positions':
+                    ax.set_ylabel(self.rowHeader[index], rotation=90, size='large')
+                if self.rowHeader[index]=='positions':
                     if len(x.shape)==4:
-                        plt.imshow(x[2][i-1], cmap=plt.cm.gnuplot)
+                        plt.imshow(x[2][i-1+12], cmap=plt.cm.gnuplot)
                     if len(x.shape)==3:
                         plt.imshow(x[i-1], cmap=plt.cm.gnuplot)
                 else:
                     if len(x.shape)==4:
-                        plt.imshow(x[2][i-1])
+                        plt.imshow(x[2][i-1+12])
                     if len(x.shape)==3:
                         plt.imshow(x[i-1])
                     plt.gray()

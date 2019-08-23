@@ -6,14 +6,14 @@ class Preprocess:
     def __init__(self, groundTruth=None, trainingSets=None):
         self.gtr = None
         self.tsr = None
-        if groundTruth == None:
+        if groundTruth is None:
             self.gtr = np.load("data/groundTruths_raw.npy")
         elif '.npy' in groundTruth:
             self.gtr = np.load(groundTruth)
         else:
             self.gtr = groundTruth
 
-        if trainingSets == None:
+        if trainingSets is None:
             self.tsr = np.load("data/trainingSets_raw.npy")
         elif '.npy' in trainingSets:
             self.tsr = np.load(trainingSets)

@@ -71,15 +71,28 @@ def img(mode='density'):
     p = Preprocess(groundTruth=s.groundTruths, trainingSets=s.trainingSets)
     x, y = processSequence(p,mode)
 
+    
     CSM = Lstm_Cnn_Model()
-    prediction, groundtruth = CSM.imageData(ckpt='', x=x, y=y)
+    CSM.lstmLayers()
+    prediction, groundtruth = CSM.imageData(
+        ckpt='checkpoints/uav-03-0.98',
+        x=x,
+        y=y,
+        mode='recall',
+        isRound=True)
+    print(prediction.shape)
+    print(groundtruth.shape)
 
+    
     data=[groundtruth, prediction]
     rowHeader = ['groundTrue', 'prediction', 'positions']
-    colHeader = 'simple'
-    img = Image(data,rowHeader,colHeader)
-    img.generate()
-
+    if mode is 'density':
+        colHeader = 'sample'
+    else:
+        colHeader = 'time'
+    i = Image(data,rowHeader,colHeader)
+    i.generate()
+    
 
 def main():
     # mode='density'
@@ -88,8 +101,8 @@ def main():
     # simulate(n=10000, uavNum=2)
     # preprocess(mode=mode)
 
-    train(mode=mode, epics=3, weight=213)
-#     img()
+    # train(mode=mode, epics=3, weight=213)
+    img(mode='trajectory')
 
 
 if __name__ == "__main__":

@@ -222,14 +222,15 @@ class Lstm_Cnn_Model:
                     callbacks=callbacks)
 
 
-    def imageData(self, ckpt, x, y, isRound=False, save=False):
+    def imageData(self, ckpt, x, y, mode='mse', isRound=False, save=False):
         if '.npy' in x:
             x = np.load(x)
         if '.npy' in y:
             y = np.load(y)
         self.model.load_weights('{0}.hdf5'.format(ckpt))
-        self.configure('mse')
-        
+        self.configure(mode)
+        result = self.model.evaluate(x, y, batch_size=1)
+        print('evaluate result: ', result[1])
         prediction = self.model.predict(x)
         
         if isRound:

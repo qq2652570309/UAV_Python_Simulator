@@ -120,8 +120,8 @@ class Preprocess:
 
 
 p = Preprocess(
-    '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
-    '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
+    # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
+    # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
 )
 p.splitByTime(20)
 # p.from30toEnd()
@@ -132,4 +132,4 @@ p.computeWeights()
 # p.broadCast()
 p.checkGroundTruthIdentical()
 p.averageLaunchingNumber()
-p.saveData()
+# p.saveData()

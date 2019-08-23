@@ -73,24 +73,24 @@ class Lstm_Cnn_Model:
         lstm_model.add(LSTM(2048, input_shape=(100, 2304), dropout=0.0, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
-        lstm_model.add(SumLayer((32, 32)))
-        lstm_model.add(BatchNormalization())
-        lstm_model.summary()
+        # lstm_model.add(SumLayer((32, 32)))
+        # lstm_model.add(BatchNormalization())
+        # lstm_model.summary()
         
-        lstm_model.add(Reshape((32,32,1)))
-        lstm_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
-        lstm_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
-        lstm_model.add(MaxPooling2D(pool_size=(2,2)))
-        lstm_model.add(Flatten())
-        lstm_model.add(Dense(3136))
-        lstm_model.add(Reshape((14, 14, 16)))
-        lstm_model.add(UpSampling2D(size=(2,2)))
-        lstm_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
-        lstm_model.add(BatchNormalization())
-        lstm_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
-        lstm_model.add(BatchNormalization())
-        lstm_model.add(Reshape((32,32)))
-        lstm_model.summary()
+        # lstm_model.add(Reshape((32,32,1)))
+        # lstm_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
+        # lstm_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
+        # lstm_model.add(MaxPooling2D(pool_size=(2,2)))
+        # lstm_model.add(Flatten())
+        # lstm_model.add(Dense(3136))
+        # lstm_model.add(Reshape((14, 14, 16)))
+        # lstm_model.add(UpSampling2D(size=(2,2)))
+        # lstm_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
+        # lstm_model.add(BatchNormalization())
+        # lstm_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
+        # lstm_model.add(BatchNormalization())
+        # lstm_model.add(Reshape((32,32)))
+        # lstm_model.summary()
 
         cnn_input = Input(shape=(100,32,32,4))
         print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
@@ -121,10 +121,10 @@ class Lstm_Cnn_Model:
 
         self.model.compile(
             optimizer='adadelta',
-            # loss=weighted_binary_crossentropy(self.weight),
-            # metrics=[recall]
-            loss='mean_squared_error',
-            metrics=[metrics.mae]
+            loss=weighted_binary_crossentropy(self.weight),
+            metrics=[recall]
+            # loss='mean_squared_error',
+            # metrics=[metrics.mae]
         )
 
 
@@ -138,12 +138,12 @@ class Lstm_Cnn_Model:
         callbacks = []
         callbacks.append(
             ModelCheckpoint(
-                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
-                # monitor='val_recall',
-                # mode='max',
-                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
-                monitor='val_mean_absolute_error',
-                mode='min',
+                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
+                monitor='val_recall',
+                mode='max',
+                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                # monitor='val_mean_absolute_error',
+                # mode='min',
                 save_best_only=True,
                 save_weights_only=True,
                 verbose=True
@@ -158,31 +158,52 @@ class Lstm_Cnn_Model:
                     callbacks=callbacks)
 
 
-    def imageData(self, ckpt, path=None):
+    def imageData(self, ckpt, path=None, isRound=False):
+        x = None
+        y = None
         if path == None:
             self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+            x = np.load('data/evaluate_trainingSets.npy')
+            y = np.load('data/evaluate_groundTruths.npy')
         else:
-            self.model.load_weights('{0}/{1}.hdf5'.format(path, ckpt))
+            print('{0}/checkpoints/{1}.hdf5'.format(path, ckpt))
+            # self.model.load_weights('{0}/checkpoints/{1}.hdf5'.format(path, ckpt))
+            self.model.load_weights('checkpoints/uav-01-0.91.hdf5')
+            x = np.load('{0}/data/evaluate_trainingSets.npy'.format(path))
+            y = np.load('{0}/data/evaluate_groundTruths.npy'.format(path))
         self.configure()
-        prediction = self.model.predict(self.x_test)
+        
+        prediction = self.model.predict(x)
+        
+        if isRound:
+            prediction = np.round(np.clip(prediction, 0, 1))
         
         np.save('data/prediction.npy', prediction)
-        np.save('data/y_test.npy', self.y_test)
+        np.save('data/y_test.npy', y)
 
+    def test(self):
+        x = np.load('data/evaluate_trainingSets.npy')
+        y = np.load('data/evaluate_groundTruths.npy')
+        self.model.load_weights('checkpoints/uav-01-0.91.hdf5')
+        self.configure()
+        prediction = self.model.predict(x)
+        prediction = np.round(np.clip(prediction, 0, 1))
 
 
 CSM = Lstm_Cnn_Model(
     # "data/trainingSets_diff.npy",
     # "data/groundTruths_diff.npy",
-    epics=3
+    epics=3,
+    weight=15.26
 )
 CSM.loadData(
-    "../../wbai03/UAV_POSTPROCESS/data/trainingSets_diff.npy",
-    "../../wbai03/UAV_POSTPROCESS/data/groundTruths_diff.npy"
+    # "../../wbai03/test_postprocess/data/trainingSets_diff.npy",
+    # "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
 )
 CSM.layers()
-# CSM.train()
-CSM.imageData(
-    path='../../wbai03/UAV_POSTPROCESS/checkpoints',
-    ckpt='uav-02-0.11'
-)
+CSM.train()
+# CSM.imageData(
+#     path='../../wbai03/test_postprocess',
+#     ckpt='uav-01-0.91'
+# )
+# CSM.test()

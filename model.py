@@ -26,14 +26,23 @@ class Lstm_Cnn_Model:
         self.model = None
         self.epics = epics
         self.weight = weight
-        self.trainingSets = trs
-        self.grourndTruth = grt
+        self.trainingSets = "data/trainingSets_diff.npy"
+        self.grourndTruth = "data/groundTruths_diff.npy"
 
-    def loadData(self):
-        uav_data = np.load(self.trainingSets)
+    def loadData(self, trs=None, grt=None):
+        uav_data = None
+        uav_label = None
+
+        if trs == None:
+            uav_data = np.load(self.trainingSets)
+        else:
+            uav_data = np.load(trs)
         print('uav_data: ', uav_data.shape) # (10000, 30, 32, 32, 4)
 
-        uav_label = np.load(self.grourndTruth)
+        if grt == None:
+            uav_label = np.load(self.grourndTruth)
+        else:
+            uav_label = np.load(grt)
         print('uav_label: ', uav_label.shape) # (10000, 30, 32, 32)
 
         data_size = int(len(uav_data) * 0.85)
@@ -149,16 +158,31 @@ class Lstm_Cnn_Model:
                     callbacks=callbacks)
 
 
-    def imageData(self, ckpt):
-        self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+    def imageData(self, ckpt, path=None):
+        if path == None:
+            self.model.load_weights('checkpoints/{0}.hdf5'.format(ckpt))
+        else:
+            self.model.load_weights('{0}/{1}.hdf5'.format(path, ckpt))
         self.configure()
         prediction = self.model.predict(self.x_test)
         
         np.save('data/prediction.npy', prediction)
         np.save('data/y_test.npy', self.y_test)
 
-CSM = Lstm_Cnn_Model("data/trainingSets_diff.npy", "data/groundTruths_diff.npy", 3)
-CSM.loadData()
+
+
+CSM = Lstm_Cnn_Model(
+    # "data/trainingSets_diff.npy",
+    # "data/groundTruths_diff.npy",
+    epics=3
+)
+CSM.loadData(
+    "../../wbai03/UAV_POSTPROCESS/data/trainingSets_diff.npy",
+    "../../wbai03/UAV_POSTPROCESS/data/groundTruths_diff.npy"
+)
 CSM.layers()
 # CSM.train()
-CSM.imageData('uav-03-0.39')
+CSM.imageData(
+    path='../../wbai03/UAV_POSTPROCESS/checkpoints',
+    ckpt='uav-02-0.11'
+)

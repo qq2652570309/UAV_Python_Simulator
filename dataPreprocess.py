@@ -3,9 +3,17 @@ import numpy as np
 
 class Preprocess:
 
-    def __init__(self):
-        self.gtr = np.load("data/groundTruths_raw.npy")
-        self.tsr = np.load("data/trainingSets_raw.npy")
+    def __init__(self, groundTruth=None, trainingSets=None):
+        self.gtr = None
+        self.tsr = None
+        if groundTruth == None:
+            self.gtr = np.load("data/groundTruths_raw.npy")
+        else:
+            self.gtr = np.load(groundTruth)
+        if trainingSets == None:
+            self.tsr = np.load("data/trainingSets_raw.npy")
+        else:
+            self.tsr = np.load(trainingSets)
         print('raw trainingSets', self.tsr.shape)
         print('raw groundTruth: ', self.gtr.shape)
 
@@ -111,7 +119,10 @@ class Preprocess:
         print('average lauching complete\n')
 
 
-p = Preprocess()
+p = Preprocess(
+    '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
+    '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
+)
 p.splitByTime(20)
 # p.from30toEnd()
 p.oneOrZero()

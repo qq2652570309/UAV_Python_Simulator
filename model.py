@@ -100,6 +100,30 @@ class Lstm_Cnn_Model:
         self.model = Model(inputs=cnn_input, outputs=lstm_output)
 
 
+    def cnnLayer(self):
+        cnn_model = Sequential()
+        cnn_model.add(Reshape((32,32,1), input_shape=(32, 32)))
+        cnn_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
+        cnn_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
+        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Flatten())
+        cnn_model.add(Dense(3136))
+        cnn_model.add(Reshape((14, 14, 16)))
+        cnn_model.add(UpSampling2D(size=(2,2)))
+        cnn_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(BatchNormalization())
+        cnn_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(BatchNormalization())
+        cnn_model.add(Reshape((32,32)))
+        cnn_model.summary()
+
+        cnn_input = Input(shape=(32,32))
+        print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
+        cnn_output = cnn_model(cnn_input)
+
+        self.model = Model(inputs=cnn_input, outputs=cnn_output)
+
+
     def configure(self):
         def weighted_binary_crossentropy(weights):
             def w_binary_crossentropy(y_true, y_pred):
@@ -121,10 +145,10 @@ class Lstm_Cnn_Model:
 
         self.model.compile(
             optimizer='adadelta',
-            loss=weighted_binary_crossentropy(self.weight),
-            metrics=[recall]
-            # loss='mean_squared_error',
-            # metrics=[metrics.mae]
+            # loss=weighted_binary_crossentropy(self.weight),
+            # metrics=[recall]
+            loss='mean_squared_error',
+            metrics=[metrics.mae]
         )
 
 
@@ -138,12 +162,12 @@ class Lstm_Cnn_Model:
         callbacks = []
         callbacks.append(
             ModelCheckpoint(
-                filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
-                monitor='val_recall',
-                mode='max',
-                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
-                # monitor='val_mean_absolute_error',
-                # mode='min',
+                # filepath=os.path.join("checkpoints","uav-{epoch:02d}-{val_recall:.2f}.hdf5"),
+                # monitor='val_recall',
+                # mode='max',
+                filepath=os.path.join("checkpoints","cnn-{epoch:02d}-{val_mean_absolute_error:.2f}.hdf5"),
+                monitor='val_mean_absolute_error',
+                mode='min',
                 save_best_only=True,
                 save_weights_only=True,
                 verbose=True
@@ -181,29 +205,48 @@ class Lstm_Cnn_Model:
         np.save('data/prediction.npy', prediction)
         np.save('data/y_test.npy', y)
 
-    def test(self):
-        x = np.load('data/evaluate_trainingSets.npy')
-        y = np.load('data/evaluate_groundTruths.npy')
-        self.model.load_weights('checkpoints/uav-01-0.91.hdf5')
+    def generateCNN(self):
+        x = np.load("data/evaluate_trainingSets.npy")
+        self.model.load_weights('checkpoints/uav-01-0.92.hdf5')
         self.configure()
         prediction = self.model.predict(x)
         prediction = np.round(np.clip(prediction, 0, 1))
+        prediction = np.sum(prediction, axis=1)
+        np.save('data/evaluate_lstm.npy', prediction)
+
+    def test(self):
+        x = np.load('data/evaluate_lstm.npy')
+        y = np.load('data/evaluate_groundTruths.npy')
+        print(x.shape)
+        print(y.shape)
+        self.model.load_weights('checkpoints/cnn-07-0.03.hdf5')
+        self.configure()
+        result = self.model.evaluate(x, y, batch_size=1)
+        print('result: ', result)
+        prediction = self.model.predict(x)
+        # prediction = np.round(np.clip(prediction, 0, 1))
+        np.save('data/evaluate_cnn.npy', prediction)
+        np.save('data/y_test.npy', y)
+    
 
 
 CSM = Lstm_Cnn_Model(
     # "data/trainingSets_diff.npy",
     # "data/groundTruths_diff.npy",
-    epics=3,
-    weight=15.26
+    epics=10,
+    # weight=15.26
 )
 CSM.loadData(
-    # "../../wbai03/test_postprocess/data/trainingSets_diff.npy",
-    # "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
+    "../../wbai03/test_postprocess/data/lstm_prediction.npy",
+    "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
 )
-CSM.layers()
-CSM.train()
+# CSM.layers()
+CSM.cnnLayer()
+# CSM.train()
+# CSM.generateCNN()
+CSM.test()
 # CSM.imageData(
 #     path='../../wbai03/test_postprocess',
 #     ckpt='uav-01-0.91'
 # )
-# CSM.test()
+# CSM.generateCNN()

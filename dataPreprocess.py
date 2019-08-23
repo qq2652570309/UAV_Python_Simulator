@@ -92,8 +92,8 @@ class Preprocess:
         print('generateDensity complete\n')
 
     def saveData(self):
-        np.save('data/trainingSets_diff.npy', self.tsr)
-        np.save('data/groundTruths_diff.npy', self.gtr)
+        np.save('data/evaluate_trainingSets.npy', self.tsr)
+        np.save('data/evaluate_groundTruths.npy', self.gtr)
         print('trainingSets shape', self.tsr.shape)
         print('groundTruths shape', self.gtr.shape)
         print('save complete\n')
@@ -122,12 +122,14 @@ class Preprocess:
 p = Preprocess(
     # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
     # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
+    # 'data/evaluate_groundTruths.npy',
+    # 'data/evaluate_trainingSets.npy',
 )
 p.splitByTime(20)
 # p.from30toEnd()
 p.oneOrZero()
-# p.generateDensity()
-# p.batchNormalize()
+p.generateDensity()
+p.batchNormalize()
 p.computeWeights()
 # p.broadCast()
 p.checkGroundTruthIdentical()

@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 
 data = [
-    # 'data/y_test.npy',
-    'data/groundTruths_diff.npy',
-    'data/groundTruths_diff.npy',
-    'data/groundTruths_diff.npy',
-    # 'data/prediction.npy',
+    'data/y_test.npy',
+    # 'data/groundTruths_diff.npy',
+    # 'data/groundTruths_diff.npy',
+    # 'data/groundTruths_diff.npy',
+    'data/evaluate_cnn.npy',
     # 'data/positions.npy'
 ]
 rowHeader = ['groundTrue', 'prediction', 'positions']
@@ -44,4 +44,4 @@ for index in range(len(data)):
 
 
 # plt.show()
-plt.savefig("img/density_32_32.png")
+plt.savefig("img/density_cnn_32_32.png")

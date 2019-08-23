@@ -12,11 +12,11 @@ import time
 # print ('Argument List:', str(sys.argv))
 
 
-def simulate(n=None):
+def simulate(n=None, uavNum=None):
     if n==None:
-        s = Simulator(iteration=10000, row=32, column=32, time=120, timeInterval=5)
+        s = Simulator(iteration=10000, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
     else:
-        s = Simulator(iteration=n, row=32, column=32, time=120, uavNum=n, timeInterval=5)
+        s = Simulator(iteration=n, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
     startTimeIter = time.time()
     s.generate()
     print('trainingSets_raw shape: ', s.trainingSets.shape)
@@ -48,13 +48,14 @@ def train(mode='density', epics=3, weight=1):
             "data/groundTruths_density.npy"
         )
         CSM.layers()
+        CSM.train('mse')
     elif mode=='trajectory':
         CSM.loadData(
             "../../wbai03/test_postprocess/data/lstm_prediction.npy",
             "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
         )
         CSM.cnnLayer()
-    CSM.train()
+        CSM.train('recall')
 
 
 def img():
@@ -72,9 +73,9 @@ def img():
 
 
 def main():
-    simulate(100)
-    preprocess(mode='density')
-#     train(mode='density', epics=3, weight=1)
+    # simulate(n=10000, uavNum=2)
+    # preprocess(mode='density')
+    train(mode='density', epics=3, weight=1)
 #     img()
 
 

@@ -2,4 +2,3 @@ numpy
 tensorflow==1.13.1
 matplotlib
 keras
-"numpy<1.17"

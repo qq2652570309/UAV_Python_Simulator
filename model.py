@@ -176,7 +176,7 @@ class Lstm_Cnn_Model:
                 loss='mean_squared_error',
                 metrics=[metrics.mae]
             )
-        else:
+        elif mode=='recall':
             self.model.compile(
                 optimizer='adadelta',
                 loss=weighted_binary_crossentropy(self.weight),

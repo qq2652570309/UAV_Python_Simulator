@@ -25,9 +25,7 @@ def simulate(n=None, uavNum=None):
     np.save('data/groundTruths_raw.npy', s.groundTruths)
     print('total time: ', time.time() - startTimeIter)
 
-
-def preprocess(mode='density'):
-    p = Preprocess()
+def processSequence(p, mode):
     p.splitByTime(20)
     if mode == 'trajectory':
         p.oneOrZero()
@@ -37,7 +35,15 @@ def preprocess(mode='density'):
         p.batchNormalize()
     p.checkGroundTruthIdentical()
     p.averageLaunchingNumber()
-    p.saveData(name='density')
+    return p.tsr, p.gtr
+
+def preprocess(mode='density'):
+    p = Preprocess()
+    processSequence(p, mode=mode)
+    if mode=='density':
+        p.saveData(name='density')
+    if mode=='trajectory':
+        p.saveData(name='trajectory')
 
 
 def train(mode='density', epics=3, weight=1):
@@ -51,19 +57,22 @@ def train(mode='density', epics=3, weight=1):
         CSM.train('mse')
     elif mode=='trajectory':
         CSM.loadData(
-            "../../wbai03/test_postprocess/data/lstm_prediction.npy",
-            "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
+            "data/trainingSets_trajectory.npy",
+            "data/groundTruths_trajectory.npy"
         )
-        CSM.cnnLayer()
+        CSM.lstmLayers()
         CSM.train('recall')
 
 
-def img():
+def img(mode='density'):
     s = Simulator(iteration=10, row=32, column=32, time=120, uavNum=2, timeInterval=5)
     s.generate()
     
+    p = Preprocess(groundTruth=s.groundTruths, trainingSets=s.trainingSets)
+    x, y = processSequence(p,mode)
+
     CSM = Lstm_Cnn_Model()
-    prediction, groundtruth = CSM.imageData(ckpt='', x=s.trainingSets, y=s.groundTruths)
+    prediction, groundtruth = CSM.imageData(ckpt='', x=x, y=y)
 
     data=[groundtruth, prediction]
     rowHeader = ['groundTrue', 'prediction', 'positions']
@@ -73,9 +82,13 @@ def img():
 
 
 def main():
+    # mode='density'
+    mode='trajectory'
+
     # simulate(n=10000, uavNum=2)
-    # preprocess(mode='density')
-    train(mode='density', epics=3, weight=1)
+    preprocess(mode='mode')
+
+    # train(mode='mode', epics=3, weight=1)
 #     img()
 
 

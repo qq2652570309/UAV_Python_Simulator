@@ -8,12 +8,17 @@ class Preprocess:
         self.tsr = None
         if groundTruth == None:
             self.gtr = np.load("data/groundTruths_raw.npy")
-        else:
+        elif '.npy' in groundTruth:
             self.gtr = np.load(groundTruth)
+        else:
+            self.gtr = groundTruth
+
         if trainingSets == None:
             self.tsr = np.load("data/trainingSets_raw.npy")
-        else:
+        elif '.npy' in trainingSets:
             self.tsr = np.load(trainingSets)
+        else:
+            self.tsr = trainingSets
         print('raw trainingSets', self.tsr.shape)
         print('raw groundTruth: ', self.gtr.shape)
 

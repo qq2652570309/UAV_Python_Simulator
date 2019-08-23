@@ -10,7 +10,7 @@ import numpy as np
 from Area import Area
 
 class Simulator:
-    def __init__(self, iteration = 1, time=60, row=0, column=0,  startPointsNum=10, endPointsNum=10, requiredDist=15, timeInterval=5):
+    def __init__(self, iteration = 1, time=60, row=0, column=0,  uavNum=None, requiredDist=15, timeInterval=5):
         self.iteration = iteration
         self.row = row
         self.column = column
@@ -18,8 +18,7 @@ class Simulator:
         self.requiredDist = requiredDist
         self.timeInterval = timeInterval
         self.area = Area()
-        self.startPointsNum = startPointsNum
-        self.endPointsNum = endPointsNum
+        self.uavNum = uavNum
         # In channel, 0th is status that uav is launching at this second
         # 1st is launching rate of this point
         # 2nd and 3rd is (x, y) postion of destination point
@@ -38,7 +37,10 @@ class Simulator:
             logging.info('At {0} iteration'.format(index))
                     
             # startPositions, endPositions = self.generatePositions() 
-            startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
+            if self.uavNum == None:
+                startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
+            else:
+                startPositions = self.area.getLaunchPoint(low=0.1, high=0.8, n=self.uavNum)
 
             for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
@@ -103,19 +105,6 @@ class Simulator:
     def choosePoints(self, pointsNum):
         return np.random.choice(self.row*self.column, pointsNum, replace=False)
 
-    def generatePositions(self):
-        startPoints = self.choosePoints(self.startPointsNum)
-        startPositions = list(map(lambda x: (x//self.column, x%self.column), startPoints))
-        endPositions = []
-        endPoints = np.arange(self.row*self.column, dtype=np.int)
-        while len(endPositions) < self.endPointsNum :
-            indexEnd = np.random.randint(low=0, high=(len(endPoints)))
-            endPosition = (endPoints[indexEnd]//self.column, endPoints[indexEnd]%self.column)
-            endPoints = np.delete(endPoints, indexEnd)
-            if self.computeDistance(endPosition, startPositions, self.requiredDist):
-                endPositions.append(endPosition)
-        return startPositions, endPositions
-
     def computeDistance(self, endPosition, startPositions, requiredDist):
         for startPoinst in startPositions:
             distance = np.abs(startPoinst[0]-endPosition[0]) + np.abs(startPoinst[1]-endPosition[1])
@@ -129,22 +118,23 @@ class Simulator:
     #         self.positions[index, ep[0], ep[1]] = 0.5
 
 
-logger = logging.getLogger()
-logger.disabled = True
+if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.disabled = True
 
-logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
 
-logging.info('Started')
-startTimeIter = time.time()
-# s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
-# s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
-s = Simulator(iteration=20, row=32, column=32, time=120, startPointsNum=12, endPointsNum=12, timeInterval=5)
-s.generate()
+    logging.info('Started')
+    startTimeIter = time.time()
+    # s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
+    # s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
+    s = Simulator(iteration=20, row=32, column=32, time=120, timeInterval=5)
+    s.generate()
 
-logging.info('Finished')
-np.save('data/evaluate_trainingSets.npy', s.trainingSets)
-np.save('data/evaluate_groundTruths.npy', s.groundTruths)
-# np.save('data/positions.npy', s.positions)
-print('total time: ', time.time() - startTimeIter)
-# logging.info('trainingSets: \n{0}'.format(s.trainingSets))
-# logging.info('groundTruths: \n{0}'.format(s.groundTruths))
+    logging.info('Finished')
+    np.save('data/evaluate_trainingSets.npy', s.trainingSets)
+    np.save('data/evaluate_groundTruths.npy', s.groundTruths)
+    # np.save('data/positions.npy', s.positions)
+    print('total time: ', time.time() - startTimeIter)
+    # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
+    # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

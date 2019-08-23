@@ -67,7 +67,7 @@ class Area:
                     result.append([row,col])
         return result
 
-    def getLaunchPoint(self, low=0, high=1):
+    def getLaunchPoint(self, low=0, high=1, n=None):
         result = []
         possiblity = 0
         for i in range(len(self.la)):
@@ -76,7 +76,13 @@ class Area:
                 # print(self.la[i])
             point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
-        return np.random.permutation(result)
+        if n==None:
+            return np.random.permutation(result)
+        else:
+            points = []
+            for i in range(n):
+                points.append(random.choice(result))
+            return np.random.permutation(points)
     
     def getDestination(self, allPoints=False):
         if allPoints:
@@ -106,7 +112,6 @@ class Area:
         if save == True:
             plt.savefig("img/result.png")
 
-# a = Area()
-# for x in range(10):
-    # print(a.getDestination())
-# a.image(32, True)
+if __name__ == "__main__":
+    a = Area()
+    print(a.getLaunchPoint(n=1))

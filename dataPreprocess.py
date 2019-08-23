@@ -91,9 +91,9 @@ class Preprocess:
         print(self.gtr.shape)
         print('generateDensity complete\n')
 
-    def saveData(self):
-        np.save('data/evaluate_trainingSets.npy', self.tsr)
-        np.save('data/evaluate_groundTruths.npy', self.gtr)
+    def saveData(self, name='density'):
+        np.save('data/trainingSets_{0}.npy'.format(name), self.tsr)
+        np.save('data/groundTruths_{0}.npy'.format(name), self.gtr)
         print('trainingSets shape', self.tsr.shape)
         print('groundTruths shape', self.gtr.shape)
         print('save complete\n')
@@ -119,19 +119,20 @@ class Preprocess:
         print('average lauching complete\n')
 
 
-p = Preprocess(
-    # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
-    # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
-    # 'data/evaluate_groundTruths.npy',
-    # 'data/evaluate_trainingSets.npy',
-)
-p.splitByTime(20)
-# p.from30toEnd()
-p.oneOrZero()
-p.generateDensity()
-p.batchNormalize()
-p.computeWeights()
-# p.broadCast()
-p.checkGroundTruthIdentical()
-p.averageLaunchingNumber()
-# p.saveData()
+if __name__ == "__main__":
+    p = Preprocess(
+        # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
+        # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
+        # 'data/evaluate_groundTruths.npy',
+        # 'data/evaluate_trainingSets.npy',
+    )
+    p.splitByTime(20)
+    # p.from30toEnd()
+    p.oneOrZero()
+    p.generateDensity()
+    p.batchNormalize()
+    p.computeWeights()
+    # p.broadCast()
+    p.checkGroundTruthIdentical()
+    p.averageLaunchingNumber()
+    # p.saveData()

@@ -86,9 +86,9 @@ def main():
     mode='trajectory'
 
     # simulate(n=10000, uavNum=2)
-    preprocess(mode='mode')
+    # preprocess(mode=mode)
 
-    # train(mode='mode', epics=3, weight=1)
+    train(mode=mode, epics=3, weight=213)
 #     img()
 
 

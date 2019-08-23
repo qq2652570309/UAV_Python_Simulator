@@ -185,7 +185,7 @@ class Lstm_Cnn_Model:
 
 
     def train(self, mode='mse'):
-        self.configure('mse')
+        self.configure(mode)
         y_train = self.y_train
         x_train = self.x_train
         y_test = self.y_test

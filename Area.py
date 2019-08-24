@@ -10,6 +10,10 @@ launchingArea = [
         [3, 3],
     ],
     [
+        [13, 18],
+        [15, 20],
+    ],
+    [
         [28, 28],
         [30, 30],
     ],
@@ -23,6 +27,10 @@ destinationArea = [
     [
         [3, 26],
         [5, 28],
+    ],
+    [
+        [4, 15],
+        [6, 17],
     ],
     [
         [15, 8],
@@ -59,6 +67,7 @@ class Area:
 
     def createArea(self, vertices):
         result = []
+        vertices = random.sample(vertices, k=3)
         for vertex in vertices:
             start = vertex[0]
             end = vertex[1]
@@ -76,13 +85,9 @@ class Area:
                 # print(self.la[i])
             point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
-        if n==None:
-            return np.random.permutation(result)
-        else:
-            points = []
-            for i in range(n):
-                points.append(random.choice(result))
-            return np.random.permutation(points)
+        if n != None:
+            result = random.sample(result, k=3)
+        return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):
         if allPoints:
@@ -114,4 +119,4 @@ class Area:
 
 if __name__ == "__main__":
     a = Area()
-    print(a.getLaunchPoint(n=1))
+    a.image(32,save=True)

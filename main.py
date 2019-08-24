@@ -64,7 +64,7 @@ def train(mode='density', epics=3, weight=1):
         CSM.train('recall')
 
 
-def img(mode='density'):
+def img(mode='density', ckpt=''):
     s = Simulator(iteration=10, row=32, column=32, time=120, uavNum=2, timeInterval=5)
     s.generate()
     
@@ -75,7 +75,7 @@ def img(mode='density'):
     CSM = Lstm_Cnn_Model()
     CSM.lstmLayers()
     prediction, groundtruth = CSM.imageData(
-        ckpt='checkpoints/uav-03-0.98',
+        ckpt=ckpt,
         x=x,
         y=y,
         mode='recall',
@@ -102,7 +102,7 @@ def main():
     # preprocess(mode=mode)
 
     # train(mode=mode, epics=3, weight=213)
-    img(mode='trajectory')
+    img(mode='trajectory', ckpt='../../wbai02/uav_test/checkpoints/uav-01-0.95')
 
 
 if __name__ == "__main__":

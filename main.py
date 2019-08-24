@@ -23,6 +23,7 @@ def simulate(n=None, uavNum=None):
     print('groundTruths_raw shape: ', s.groundTruths.shape)
     np.save('data/trainingSets_raw.npy', s.trainingSets)
     np.save('data/groundTruths_raw.npy', s.groundTruths)
+    # np.save('data/positions.npy', s.positions)
     print('total time: ', time.time() - startTimeIter)
 
 def processSequence(p, mode):
@@ -73,18 +74,26 @@ def img(mode='density', ckpt=''):
 
     
     CSM = Lstm_Cnn_Model()
-    CSM.lstmLayers()
-    prediction, groundtruth = CSM.imageData(
-        ckpt=ckpt,
-        x=x,
-        y=y,
-        mode='recall',
-        isRound=True)
+    if mode is 'density':
+        CSM.layers()
+        prediction, groundtruth = CSM.imageData(
+            ckpt=ckpt,
+            x=x,
+            y=y,
+            mode='mse')
+    else:
+        CSM.lstmLayers()
+        prediction, groundtruth = CSM.imageData(
+            ckpt=ckpt,
+            x=x,
+            y=y,
+            mode='recall',
+            isRound=True)
     print(prediction.shape)
     print(groundtruth.shape)
 
-    
-    data=[groundtruth, prediction]
+
+    data=[groundtruth, prediction, s.positions]
     rowHeader = ['groundTrue', 'prediction', 'positions']
     if mode is 'density':
         colHeader = 'sample'
@@ -95,14 +104,14 @@ def img(mode='density', ckpt=''):
     
 
 def main():
-    # mode='density'
-    mode='trajectory'
+    mode='density'
+    # mode='trajectory'
 
-    # simulate(n=10000, uavNum=2)
+    # simulate(n=10000, uavNum=10)
     # preprocess(mode=mode)
 
-    # train(mode=mode, epics=3, weight=213)
-    img(mode='trajectory', ckpt='../../wbai02/uav_test/checkpoints/uav-01-0.95')
+    # train(mode=mode, epics=3, weight=1)
+    img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
 
 
 if __name__ == "__main__":

@@ -36,15 +36,15 @@ class Image:
                         plt.imshow(x[i-1])
                     plt.gray()
                 ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(True)
+                ax.get_yaxis().set_visible(False)
 
         plt.savefig("img/density_cnn_32_32.png")
 
 
 if __name__ == "__main__":
     data = [
-        'data/groundTruths.npy',
-        'data/groundTruths.npy',
+        'data/groundTruths_density.npy',
+        'data/groundTruths_density.npy',
         'data/positions.npy',
     ]
     rowHeader = ['groundTrue', 'prediction', 'positions']

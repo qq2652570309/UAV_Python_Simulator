@@ -43,9 +43,9 @@ class Image:
 
 if __name__ == "__main__":
     data = [
-        'data/groundTruths_diff.npy',
-        'data/groundTruths_diff.npy',
-        'data/groundTruths_diff.npy',
+        'data/groundTruths.npy',
+        'data/groundTruths.npy',
+        'data/positions.npy',
     ]
     rowHeader = ['groundTrue', 'prediction', 'positions']
 

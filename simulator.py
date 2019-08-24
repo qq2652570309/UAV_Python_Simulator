@@ -25,7 +25,7 @@ class Simulator:
         self.trainingSets = np.zeros(shape=(self.iteration, self.time, self.row, self.column, 4), dtype=np.float32)
         self.groundTruths = np.zeros(shape=(self.iteration, self.time, self.row, self.column), dtype=np.float32)
         # record all launching and landing postions
-        # self.positions = np.zeros(shape=(self.iteration, 32, 32), dtype=np.float32)
+        self.positions = np.zeros(shape=(self.iteration, 32, 32), dtype=np.float32)
         logging.info('finish init\n')
 
 
@@ -35,7 +35,10 @@ class Simulator:
         for index in range(self.iteration):
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
-                    
+
+            self.area = Area()
+            self.setColor(index, self.area.la, self.area.da)
+            
             # startPositions, endPositions = self.generatePositions() 
             if self.uavNum == None:
                 startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
@@ -112,10 +115,10 @@ class Simulator:
                 return False
         return True
 
-    # def setColor(self, index, startPositions, endPositions):
-    #     for sp, ep in zip(startPositions, endPositions):
-    #         self.positions[index, sp[0], sp[1]] = 0.2
-    #         self.positions[index, ep[0], ep[1]] = 0.5
+    def setColor(self, index, startPositions, endPositions):
+        for sp, ep in zip(startPositions, endPositions):
+            self.positions[index, sp[0], sp[1]] = 0.2
+            self.positions[index, ep[0], ep[1]] = 0.5
 
 
 if __name__ == "__main__":
@@ -134,7 +137,7 @@ if __name__ == "__main__":
     logging.info('Finished')
     np.save('data/evaluate_trainingSets.npy', s.trainingSets)
     np.save('data/evaluate_groundTruths.npy', s.groundTruths)
-    # np.save('data/positions.npy', s.positions)
+    np.save('data/positions.npy', s.positions)
     print('total time: ', time.time() - startTimeIter)
     # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
     # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

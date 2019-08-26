@@ -54,52 +54,49 @@ class Simulator:
 
                 # generate ground truth
                 for currentTime in range(self.time):
-                    if currentTime % self.timeInterval != 0:
-                        continue
-                    else:
-                        succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
-                        if succ:
-                            endRow, endCol = self.area.getDestination()
-                            remainingTime = self.time - currentTime
-                            
-                            # add info into channel
-                            self.trainingSets[index,currentTime,startRow,startCol,0] = 1 # launching one uav
-                            self.trainingSets[index,currentTime,startRow,startCol,2] = endRow # destination row value
-                            self.trainingSets[index,currentTime,startRow,startCol,3] = endCol # destination col value
-                            
-                            logging.info('      At time {0}, ({1}, {2}) --> ({3}, {4})'.format(currentTime, startRow, startCol, endRow, endCol))
-                            if remainingTime >= abs(startCol-endCol)+1 :
-                                # enough time for horizontal
-                                if startCol < endCol :
-                                    r =  np.arange(startCol, endCol+1)
-                                else:
-                                    r = np.arange(endCol, startCol+1)[::-1]
-                            else:
-                                # not enough time for horizontal
-                                if startCol < endCol:
-                                    r = np.arange(startCol, startCol+remainingTime)
-                                else:
-                                    r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
-                            t1 = np.arange(currentTime, currentTime+len(r))
-                            self.groundTruths[index,t1,startRow,r] += 1
-                            remainingTime -= len(r)
+                    succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
+                    if succ:
+                        endRow, endCol = self.area.getDestination()
+                        remainingTime = self.time - currentTime
 
-                            if remainingTime > 0 :
-                                # exists time for vertical
-                                if remainingTime >= abs(startRow-endRow) :
-                                    # enough time for vertical
-                                    if startRow < endRow:
-                                        c = np.arange(startRow+1, endRow+1)
-                                    else:
-                                        c = np.arange(endRow, startRow)[::-1]
+                        # add info into channel
+                        self.trainingSets[index,currentTime,startRow,startCol,0] = 1 # launching one uav
+                        self.trainingSets[index,currentTime,startRow,startCol,2] = endRow # destination row value
+                        self.trainingSets[index,currentTime,startRow,startCol,3] = endCol # destination col value
+                        
+                        logging.info('      At time {0}, ({1}, {2}) --> ({3}, {4})'.format(currentTime, startRow, startCol, endRow, endCol))
+                        if remainingTime >= abs(startCol-endCol)+1 :
+                            # enough time for horizontal
+                            if startCol < endCol :
+                                r =  np.arange(startCol, endCol+1)
+                            else:
+                                r = np.arange(endCol, startCol+1)[::-1]
+                        else:
+                            # not enough time for horizontal
+                            if startCol < endCol:
+                                r = np.arange(startCol, startCol+remainingTime)
+                            else:
+                                r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
+                        t1 = np.arange(currentTime, currentTime+len(r))
+                        self.groundTruths[index,t1,startRow,r] += 1
+                        remainingTime -= len(r)
+                        
+                        if remainingTime > 0 :
+                            # exists time for vertical
+                            if remainingTime >= abs(startRow-endRow) :
+                                # enough time for vertical
+                                if startRow < endRow:
+                                    c = np.arange(startRow+1, endRow+1)
                                 else:
-                                    # not enough time for vertical
-                                    if startRow < endRow:
-                                        c = np.arange(startRow+1, startRow+remainingTime+1)
-                                    else:
-                                        c = np.arange(startRow-remainingTime, startRow)[::-1]
-                                t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                                self.groundTruths[index,t2, c, endCol] += 1
+                                    c = np.arange(endRow, startRow)[::-1]
+                            else:
+                                # not enough time for vertical
+                                if startRow < endRow:
+                                    c = np.arange(startRow+1, startRow+remainingTime+1)
+                                else:
+                                    c = np.arange(startRow-remainingTime, startRow)[::-1]
+                            t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
+                            self.groundTruths[index,t2, c, endCol] += 1
             logging.info('End {0} iteration, cost {1}\n'.format(index, time.time() - startTimeIter))
         logging.info('finish generate, cost {0}'.format(time.time() - startTimeTotal))
 

@@ -70,7 +70,7 @@ class Lstm_Cnn_Model:
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(2048, input_shape=(100, 2304), dropout=0.0, return_sequences=True))
+        lstm_model.add(LSTM(2048, input_shape=(100, 2304), dropout=0.0, unit_forget_bias=True, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
         lstm_model.add(SumLayer((32, 32)))
@@ -102,14 +102,21 @@ class Lstm_Cnn_Model:
 
     def lstmLayers(self):
         cnn_model = Sequential()
-        cnn_model.add(Conv2D(8, kernel_size=(2, 2),
+        cnn_model.add(Conv2D(8, kernel_size=(4, 4),
                         activation='relu',
                         input_shape=(32, 32, 4)))
-        cnn_model.add(Conv2D(16, kernel_size=(2, 2), activation='relu'))
-        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
-        cnn_model.add(Conv2D(32, kernel_size=(2, 2), activation='relu'))
+        cnn_model.add(Conv2D(8, kernel_size=(3, 3), activation='relu'))
+        # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Conv2D(16, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+        # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
         cnn_model.summary()
 
@@ -120,7 +127,7 @@ class Lstm_Cnn_Model:
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
 
         cnn_input = Input(shape=(100,32,32,4))
-        print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
+        print('input shape: ',cnn_input.shape) # (?, 100, 32, 32, 4)
         lstm_input = TimeDistributed(cnn_model)(cnn_input)
         lstm_output = lstm_model(lstm_input)
 
@@ -274,15 +281,16 @@ if __name__ == "__main__":
         epics=10,
         # weight=15.26
     )
-    CSM.loadData(
-        "../../wbai03/test_postprocess/data/lstm_prediction.npy",
-        "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
-    )
+    # CSM.loadData(
+    #     "../../wbai03/test_postprocess/data/lstm_prediction.npy",
+    #     "../../wbai03/test_postprocess/data/groundTruths_diff.npy"
+    # )
     # CSM.layers()
-    CSM.cnnLayer()
+    CSM.lstmLayers()
+    # CSM.cnnLayer()
     # CSM.train()
     # CSM.generateCNN()
-    CSM.test()
+    # CSM.test()
     # CSM.imageData(
     #     path='../../wbai03/test_postprocess',
     #     ckpt='uav-01-0.91'

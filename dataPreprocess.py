@@ -115,9 +115,9 @@ class Preprocess:
         sum3 = np.sum(self.tsr[:,:, 27:31, 27:31, 0])
         sampleNum = self.tsr.shape[0]
         timeTotal = self.tsr.shape[1]
-        ave1 = sum1 / sampleNum / timeTotal * 5
-        ave2 = sum2 / sampleNum / timeTotal * 5
-        ave3 = sum3 / sampleNum / timeTotal * 5
+        ave1 = sum1 / sampleNum / timeTotal
+        ave2 = sum2 / sampleNum / timeTotal
+        ave3 = sum3 / sampleNum / timeTotal
         print('In area1, average number of UAV launched: ', ave1)
         print('In area2, average number of UAV launched: ', ave2)
         print('In area3, average number of UAV launched: ', ave3)

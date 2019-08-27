@@ -105,18 +105,15 @@ class Lstm_Cnn_Model:
         cnn_model.add(Conv2D(8, kernel_size=(4, 4),
                         activation='relu',
                         input_shape=(32, 32, 4)))
-        cnn_model.add(Conv2D(8, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
         # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
-        cnn_model.add(Conv2D(16, kernel_size=(4, 4), activation='relu'))
-        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(Conv2D(16, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
-        # cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
         cnn_model.add(Flatten())
         cnn_model.summary()
 

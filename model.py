@@ -9,7 +9,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import losses, metrics
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 

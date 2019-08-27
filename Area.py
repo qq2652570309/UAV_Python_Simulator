@@ -85,8 +85,8 @@ class Area:
                 # print(self.la[i])
             point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
-        if n != None:
-            result = random.sample(result, k=3)
+        if n is not None:
+            result = random.sample(result, k=n)
         return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):

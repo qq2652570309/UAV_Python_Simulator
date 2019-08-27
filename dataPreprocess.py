@@ -123,21 +123,26 @@ class Preprocess:
         print('In area3, average number of UAV launched: ', ave3)
         print('average lauching complete\n')
 
+    def avergeFlyingUavNumber(self):
+        n = np.sum(self.gtr) / self.gtr.shape[0] / self.gtr.shape[1]
+        print('averge flying uav number per timestep: {0}\n'.format(n))
+    
 
 if __name__ == "__main__":
     p = Preprocess(
         # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
         # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
-        # 'data/evaluate_groundTruths.npy',
-        # 'data/evaluate_trainingSets.npy',
+        'data/test_groundTruths.npy',
+        'data/test_trainingSets.npy',
     )
     p.splitByTime(20)
     # p.from30toEnd()
+    p.avergeFlyingUavNumber()
+    p.averageLaunchingNumber()
     p.oneOrZero()
-    p.generateDensity()
-    p.batchNormalize()
+    # p.generateDensity()
+    # p.batchNormalize()
     p.computeWeights()
     # p.broadCast()
     p.checkGroundTruthIdentical()
-    p.averageLaunchingNumber()
-    # p.saveData()
+    p.saveData(name='trajectory')

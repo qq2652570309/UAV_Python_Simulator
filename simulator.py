@@ -17,7 +17,7 @@ class Simulator:
         self.time = time
         self.requiredDist = requiredDist
         self.timeInterval = timeInterval
-        self.area = Area()
+        self.area = None
         self.uavNum = uavNum
         # In channel, 0th is status that uav is launching at this second
         # 1st is launching rate of this point
@@ -41,9 +41,11 @@ class Simulator:
             
             # startPositions, endPositions = self.generatePositions() 
             if self.uavNum == None:
-                startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
+                # startPositions = self.area.getLaunchPoint(low=0.1, high=0.8)
+                startPositions = self.area.getLaunchPoint(low=1, high=1)
             else:
-                startPositions = self.area.getLaunchPoint(low=0.1, high=0.8, n=self.uavNum)
+                # startPositions = self.area.getLaunchPoint(low=0.1, high=0.8, n=self.uavNum)
+                startPositions = self.area.getLaunchPoint(low=1, high=1, n=self.uavNum)
 
             for startRow, startCol, launchingRate in startPositions:
                 logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
@@ -128,12 +130,12 @@ if __name__ == "__main__":
     startTimeIter = time.time()
     # s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
     # s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
-    s = Simulator(iteration=20, row=32, column=32, time=120, timeInterval=5)
+    s = Simulator(iteration=100, row=32, column=32, time=120, uavNum=2)
     s.generate()
 
     logging.info('Finished')
-    np.save('data/evaluate_trainingSets.npy', s.trainingSets)
-    np.save('data/evaluate_groundTruths.npy', s.groundTruths)
+    np.save('data/test_trainingSets.npy', s.trainingSets)
+    np.save('data/test_groundTruths.npy', s.groundTruths)
     np.save('data/positions.npy', s.positions)
     print('total time: ', time.time() - startTimeIter)
     # logging.info('trainingSets: \n{0}'.format(s.trainingSets))

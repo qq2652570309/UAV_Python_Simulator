@@ -33,12 +33,12 @@ class Image:
                     ax.set_ylabel(self.rowHeader[index], rotation=90, size='large')
                 if self.rowHeader[index]=='positions':
                     if len(x.shape)==4:
-                        plt.imshow(x[2][i-1+12], cmap=plt.cm.gnuplot)
+                        plt.imshow(x[2, i-1], cmap=plt.cm.gnuplot)
                     if len(x.shape)==3:
                         plt.imshow(x[i-1], cmap=plt.cm.gnuplot)
                 else:
                     if len(x.shape)==4:
-                        plt.imshow(x[2][i-1+12])
+                        plt.imshow(x[2, i-1])
                     if len(x.shape)==3:
                         plt.imshow(x[i-1])
                     plt.gray()
@@ -101,14 +101,15 @@ if __name__ == "__main__":
     data = [
         # 'data/groundTruths_density.npy',
         # 'data/groundTruths_density.npy',
-        'data/groundTruths_trajctory.npy',
-        'data/prediction_trajctory.npy',
+        'data/groundTruths_trajectory.npy',
+        'data/groundTruths_trajectory.npy',
+        # 'data/prediction_trajctory.npy',
         'data/positions.npy',
     ]
     rowHeader = ['groundTrue', 'prediction', 'positions']
 
     i = Image(data, rowHeader, 'test')
-    # i.generate()
-    i.video()
+    i.generate()
+    # i.video()
     # print(i.colHeader)
 

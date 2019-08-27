@@ -14,9 +14,9 @@ import time
 
 def simulate(n=None, uavNum=None):
     if n==None:
-        s = Simulator(iteration=10000, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
+        s = Simulator(iteration=10000, row=32, column=32, time=120, uavNum=uavNum)
     else:
-        s = Simulator(iteration=n, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
+        s = Simulator(iteration=n, row=32, column=32, time=120, uavNum=uavNum)
     startTimeIter = time.time()
     s.generate()
     print('trainingSets_raw shape: ', s.trainingSets.shape)
@@ -28,6 +28,7 @@ def simulate(n=None, uavNum=None):
 
 def processSequence(p, mode):
     p.splitByTime(20)
+    p.avergeFlyingUavNumber()
     if mode == 'trajectory':
         p.oneOrZero()
         p.computeWeights()
@@ -104,14 +105,14 @@ def img(mode='density', ckpt=''):
     
 
 def main():
-    mode='density'
-    # mode='trajectory'
+    # mode='density'
+    mode='trajectory'
 
-    # simulate(n=10000, uavNum=10)
-    # preprocess(mode=mode)
+    simulate(n=10000, uavNum=3)
+    preprocess(mode=mode)
 
     # train(mode=mode, epics=3, weight=1)
-    img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
+    # img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
 
 
 if __name__ == "__main__":

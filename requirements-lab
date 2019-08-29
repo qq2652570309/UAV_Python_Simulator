@@ -1,0 +1,5 @@
+numpy==1.16.4
+pylint
+tensorflow-gpu==1.14.0
+keras
+matplotlib==2.0.0

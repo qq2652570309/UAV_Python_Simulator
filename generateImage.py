@@ -8,7 +8,7 @@ class Image:
     def __init__(self, data, rowHeader, colHeader):
         self.data = data
         self.rowHeader = rowHeader
-        self.colHeader = ['{0} {1}'.format(colHeader,col-1) for col in range(1, 11)]
+        self.colHeader = ['{0} {1}'.format(colHeader,col-1) for col in range(1, 21)]
 
     def load(self, data):
         result = None
@@ -19,10 +19,14 @@ class Image:
         return result
 
     def generate(self):
-        n = 10
+        n = 20
         plt.figure(figsize=(20, 6))
         for index in range(len(self.data)):
             x = self.load(self.data[index])
+
+            if self.rowHeader[index]=='groundTrue' and x.shape[4] == 3:
+                x = x[:,:,:,:,2]
+
             print(x.shape)
             
             for i in range(1, n+1):
@@ -32,8 +36,8 @@ class Image:
                 if i == 1:
                     ax.set_ylabel(self.rowHeader[index], rotation=90, size='large')
                 if self.rowHeader[index]=='positions':
-                    if len(x.shape)==4:
-                        plt.imshow(x[2, i-1], cmap=plt.cm.gnuplot)
+                    # if len(x.shape)==4:
+                    #     plt.imshow(x[2, i-1], cmap=plt.cm.gnuplot)
                     if len(x.shape)==3:
                         plt.imshow(x[i-1], cmap=plt.cm.gnuplot)
                 else:
@@ -100,11 +104,10 @@ class Image:
 if __name__ == "__main__":
     data = [
         # 'data/groundTruths_density.npy',
-        # 'data/groundTruths_density.npy',
-        'data/groundTruths_trajectory.npy',
-        'data/groundTruths_trajectory.npy',
+        # 'data/groundTruths_trajectory.npy',
         # 'data/prediction_trajctory.npy',
-        'data/positions.npy',
+        'data/test_groundTruths.npy',
+        # 'data/positions.npy',
     ]
     rowHeader = ['groundTrue', 'prediction', 'positions']
 

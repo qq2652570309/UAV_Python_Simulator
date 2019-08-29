@@ -67,7 +67,7 @@ class Area:
 
     def createArea(self, vertices):
         result = []
-        vertices = random.sample(vertices, k=4)
+        vertices = random.sample(vertices, k=3)
         for vertex in vertices:
             start = vertex[0]
             end = vertex[1]

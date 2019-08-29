@@ -33,16 +33,6 @@ class Preprocess:
         print(self.gtr.shape)
         print('splitByTime complete\n')
 
-    # only save the first sample after 30 seconds
-    def from30toEnd(self):
-        # self.gtr = self.gtr[:1, 30:]
-        # self.tsr = self.tsr[:1, 30:]
-        self.gtr = self.gtr[:, 20:]
-        self.tsr = self.tsr[:, 20:]
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('from30toEnd complete\n')
-
     # switch all elements to zero or one 
     def oneOrZero(self):
         m = np.median(self.gtr[self.gtr!=0])
@@ -65,8 +55,8 @@ class Preprocess:
 
     # print number of non-zeros and zeros
     def computeWeights(self):
-        one = self.gtr[self.gtr>0].size
-        zero = self.gtr[self.gtr==0].size
+        one = np.sum(self.gtr[:,:,:,:,2]>0)
+        zero = np.sum(self.gtr[:,:,:,:,2]==0)
         print('zero:',zero)
         print('one:',one)
         print('weight:',zero/one)
@@ -124,7 +114,7 @@ class Preprocess:
         print('average lauching complete\n')
 
     def avergeFlyingUavNumber(self):
-        n = np.sum(self.gtr) / self.gtr.shape[0] / self.gtr.shape[1]
+        n = np.sum(self.gtr[:,:,:,:,2]) / self.gtr.shape[0] / self.gtr.shape[1]
         print('averge flying uav number per timestep: {0}\n'.format(n))
     
 
@@ -136,13 +126,14 @@ if __name__ == "__main__":
         'data/test_trainingSets.npy',
     )
     p.splitByTime(20)
-    # p.from30toEnd()
     p.avergeFlyingUavNumber()
-    p.averageLaunchingNumber()
-    p.oneOrZero()
+    # p.averageLaunchingNumber()
+    # p.oneOrZero()
+    
     # p.generateDensity()
     # p.batchNormalize()
     p.computeWeights()
     # p.broadCast()
     p.checkGroundTruthIdentical()
-    p.saveData(name='trajectory')
+    # p.saveData(name='trajectory')
+    

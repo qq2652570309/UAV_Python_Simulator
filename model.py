@@ -120,7 +120,7 @@ class Lstm_Cnn_Model:
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
         lstm_model.add(LSTM(2048, input_shape=(100, 2304), dropout=0.0, return_sequences=True))
-        lstm_model.add(TimeDistributed(Dense(1024, activation='sigmoid')))
+        lstm_model.add(TimeDistributed(Dense(1024)))
         lstm_model.add(TimeDistributed(Reshape((32, 32))))
 
         cnn_input = Input(shape=(100,32,32,4))

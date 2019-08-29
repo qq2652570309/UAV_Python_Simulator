@@ -61,9 +61,9 @@ class Simulator:
                 # set traning sets
                 startRow = int(startRow)
                 startCol = int(startCol)
-                self.trainingSets[index,:,startRow,startCol,1] = launchingRate
+                # self.trainingSets[index,:,startRow,startCol,1] = launchingRate
 
-                # generate ground truth
+                # generate ground truth 
                 for currentTime in range(self.time):
                     succ = np.random.uniform(0,1) <= launchingRate
                     if succ:
@@ -88,7 +88,8 @@ class Simulator:
                             else:
                                 r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
                         t1 = np.arange(currentTime, currentTime+len(r))
-                        self.groundTruths[index,t1,startRow,r,2] += 1
+                        # self.groundTruths[index,t1,startRow,r,2] += 1
+                        self.groundTruths[index,t1,startRow,r,2] = 1
                         remainingTime -= len(r)
                         
                         if remainingTime > 0 :
@@ -106,7 +107,8 @@ class Simulator:
                                 else:
                                     c = np.arange(startRow-remainingTime, startRow)[::-1]
                             t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                            self.groundTruths[index,t2, c, endCol,2] += 1
+                            # self.groundTruths[index,t2, c, endCol,2] += 1
+                            self.groundTruths[index,t2, c, endCol,2] = 1
             logging.info('End {0} iteration, cost {1}\n'.format(index, time.time() - startTimeIter))
         logging.info('finish generate, cost {0}'.format(time.time() - startTimeTotal))
 
@@ -142,9 +144,9 @@ if __name__ == "__main__":
     s.generate()
 
     logging.info('Finished')
-    # np.save('data/test_trainingSets.npy', s.trainingSets)
-    # np.save('data/test_groundTruths.npy', s.groundTruths)
-    # np.save('data/positions.npy', s.positions)
+    np.save('data/test_trainingSets.npy', s.trainingSets)
+    np.save('data/test_groundTruths.npy', s.groundTruths)
+    np.save('data/positions.npy', s.positions)
     print('total time: ', time.time() - startTimeIter)
     # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
     # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

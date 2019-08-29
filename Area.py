@@ -7,38 +7,38 @@ import matplotlib.pyplot as plt
 launchingArea = [
     [
         [1, 1],
-        [3, 3],
+        [2, 2],
     ],
     [
-        [13, 18],
-        [15, 20],
+        [13, 14],
+        [14, 15],
     ],
     [
-        [28, 28],
-        [30, 30],
+        [7, 10],
+        [8, 11],
     ],
     [
-        [23, 23],
-        [25, 25],
+        [4, 2],
+        [5, 3],
     ],
 ]
 
 destinationArea = [
     [
-        [3, 26],
-        [5, 28],
+        [0, 12],
+        [1, 13],
     ],
     [
-        [4, 15],
-        [6, 17],
+        [8, 2],
+        [9, 3],
     ],
     [
-        [15, 8],
-        [17, 10],
+        [14, 8],
+        [15, 9],
     ],
     [
-        [28, 3],
-        [30, 5],
+        [5, 14],
+        [6, 15],
     ]
 ]
 
@@ -63,11 +63,11 @@ class Area:
         # self.ba = blockArea
         self.la = self.createArea(launchingArea)
         self.da = self.createArea(destinationArea)
-        self.ba = blockArea
+        # self.ba = blockArea
 
     def createArea(self, vertices):
         result = []
-        vertices = random.sample(vertices, k=3)
+        vertices = random.sample(vertices, k=4)
         for vertex in vertices:
             start = vertex[0]
             end = vertex[1]
@@ -105,8 +105,9 @@ class Area:
         la = self.getLaunchPoint()
         la = la[:,:2]
         da = self.getDestination(allPoints=True)
-        ba = self.getBlockPoint()
-        for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
+        # ba = self.getBlockPoint()
+        # for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
+        for ax, title, area in zip(axs, ['launch', 'destination'], [la, da]):
             A = np.zeros((size,size))
             for p in area:
                 A[int(p[0]), int(p[1])] = 1
@@ -119,4 +120,4 @@ class Area:
 
 if __name__ == "__main__":
     a = Area()
-    a.image(32,save=True)
+    a.image(16,save=True)

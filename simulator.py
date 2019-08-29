@@ -23,7 +23,9 @@ class Simulator:
         # 1st is launching rate of this point
         # 2nd and 3rd is (x, y) postion of destination point
         self.trainingSets = np.zeros(shape=(self.iteration, self.time, self.row, self.column, 4), dtype=np.float32)
-        self.groundTruths = np.zeros(shape=(self.iteration, self.time, self.row, self.column), dtype=np.float32)
+        print(self.trainingSets.shape)
+        self.groundTruths = np.zeros(shape=(self.iteration, self.time, self.row, self.column, 3), dtype=np.float32)
+        print(self.groundTruths.shape)
         # record all launching and landing postions
         self.positions = np.zeros(shape=(self.iteration, 32, 32), dtype=np.float32)
         logging.info('finish init\n')
@@ -31,6 +33,13 @@ class Simulator:
 
     def generate(self):
         startTimeTotal = time.time()
+        
+        for i in range(self.row):
+            self.trainingSets[:, :, i, :, 0] = i
+            self.groundTruths[:, :, i, :, 0] = i
+        for j in range(self.column):
+            self.trainingSets[:, :, :, j, 1] = j
+            self.groundTruths[:, :, :, j, 1] = j
         
         for index in range(self.iteration):
             startTimeIter = time.time()
@@ -56,13 +65,12 @@ class Simulator:
 
                 # generate ground truth
                 for currentTime in range(self.time):
-                    succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
+                    succ = np.random.uniform(0,1) <= launchingRate
                     if succ:
                         endRow, endCol = self.area.getDestination()
                         remainingTime = self.time - currentTime
 
                         # add info into channel
-                        self.trainingSets[index,currentTime,startRow,startCol,0] = 1 # launching one uav
                         self.trainingSets[index,currentTime,startRow,startCol,2] = endRow # destination row value
                         self.trainingSets[index,currentTime,startRow,startCol,3] = endCol # destination col value
                         
@@ -80,7 +88,7 @@ class Simulator:
                             else:
                                 r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
                         t1 = np.arange(currentTime, currentTime+len(r))
-                        self.groundTruths[index,t1,startRow,r] += 1
+                        self.groundTruths[index,t1,startRow,r,2] += 1
                         remainingTime -= len(r)
                         
                         if remainingTime > 0 :
@@ -98,7 +106,7 @@ class Simulator:
                                 else:
                                     c = np.arange(startRow-remainingTime, startRow)[::-1]
                             t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                            self.groundTruths[index,t2, c, endCol] += 1
+                            self.groundTruths[index,t2, c, endCol,2] += 1
             logging.info('End {0} iteration, cost {1}\n'.format(index, time.time() - startTimeIter))
         logging.info('finish generate, cost {0}'.format(time.time() - startTimeTotal))
 
@@ -130,13 +138,13 @@ if __name__ == "__main__":
     startTimeIter = time.time()
     # s = Simulator(iteration=2, row=4, column=4, time=5, startPointsNum=3, endPointsNum=3)
     # s = Simulator(iteration=10000, row=16, column=16, time=60, startPointsNum=15, endPointsNum=15)
-    s = Simulator(iteration=100, row=32, column=32, time=120, uavNum=2)
+    s = Simulator(iteration=10, row=16, column=16, time=50, uavNum=2)
     s.generate()
 
     logging.info('Finished')
-    np.save('data/test_trainingSets.npy', s.trainingSets)
-    np.save('data/test_groundTruths.npy', s.groundTruths)
-    np.save('data/positions.npy', s.positions)
+    # np.save('data/test_trainingSets.npy', s.trainingSets)
+    # np.save('data/test_groundTruths.npy', s.groundTruths)
+    # np.save('data/positions.npy', s.positions)
     print('total time: ', time.time() - startTimeIter)
     # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
     # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

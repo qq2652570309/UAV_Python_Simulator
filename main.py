@@ -104,14 +104,14 @@ def img(mode='density', ckpt=''):
     
 
 def main():
-    mode='density'
-    # mode='trajectory'
+    # mode='density'
+    mode='trajectory'
 
     # simulate(n=10000, uavNum=10)
     # preprocess(mode=mode)
 
-    # train(mode=mode, epics=3, weight=1)
-    img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
+    train(mode=mode, epics=3, weight=151.97)
+    # img(mode=mode, ckpt='checkpoints/mse-02-0.06')
 
 
 if __name__ == "__main__":

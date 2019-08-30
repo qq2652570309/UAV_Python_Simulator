@@ -110,8 +110,17 @@ def main():
     # simulate(n=10000, uavNum=10)
     # preprocess(mode=mode)
 
+<<<<<<< HEAD
+    train(mode=mode, epics=3, weight=151.97)
+    # img(mode=mode, ckpt='checkpoints/mse-02-0.06')
+=======
     # train(mode=mode, epics=3, weight=1)
+<<<<<<< HEAD
     img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
+=======
+    # img(mode=mode, ckpt='../../wbai02/uav_test/checkpoints/mse-03-0.04')
+>>>>>>> aa70e2f15518f9ba1206a89f1ca97f0b0bfba2f4
+>>>>>>> 52ca2ec2baa05c4469a121aabde32ba60c7de83e
 
 
 if __name__ == "__main__":

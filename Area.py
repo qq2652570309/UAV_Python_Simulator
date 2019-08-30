@@ -7,38 +7,38 @@ import matplotlib.pyplot as plt
 launchingArea = [
     [
         [1, 1],
-        [2, 2],
+        [3, 3],
     ],
     [
-        [13, 13],
-        [14, 14],
+        [13, 18],
+        [15, 20],
     ],
     [
-        [7, 9],
-        [8, 10],
+        [28, 28],
+        [30, 30],
     ],
     [
-        [14, 0],
-        [15, 1],
+        [23, 23],
+        [25, 25],
     ],
 ]
 
 destinationArea = [
     [
-        [0, 12],
-        [1, 13],
+        [3, 26],
+        [5, 28],
     ],
     [
-        [8, 2],
-        [9, 3],
+        [4, 15],
+        [6, 17],
     ],
     [
-        [14, 8],
-        [15, 9],
+        [15, 8],
+        [17, 10],
     ],
     [
-        [5, 14],
-        [6, 15],
+        [28, 3],
+        [30, 5],
     ]
 ]
 
@@ -63,7 +63,7 @@ class Area:
         # self.ba = blockArea
         self.la = self.createArea(launchingArea)
         self.da = self.createArea(destinationArea)
-        # self.ba = blockArea
+        self.ba = blockArea
 
     def createArea(self, vertices):
         result = []
@@ -85,8 +85,8 @@ class Area:
                 # print(self.la[i])
             point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
-        if n is not None:
-            result = random.sample(result, k=n)
+        if n != None:
+            result = random.sample(result, k=3)
         return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):
@@ -105,9 +105,8 @@ class Area:
         la = self.getLaunchPoint()
         la = la[:,:2]
         da = self.getDestination(allPoints=True)
-        # ba = self.getBlockPoint()
-        # for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
-        for ax, title, area in zip(axs, ['launch', 'destination'], [la, da]):
+        ba = self.getBlockPoint()
+        for ax, title, area in zip(axs, ['launch', 'destination', 'block'], [la, da, ba]):
             A = np.zeros((size,size))
             for p in area:
                 A[int(p[0]), int(p[1])] = 1
@@ -120,4 +119,4 @@ class Area:
 
 if __name__ == "__main__":
     a = Area()
-    a.image(16,save=True)
+    a.image(32,save=True)

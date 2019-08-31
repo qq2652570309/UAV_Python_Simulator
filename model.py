@@ -115,12 +115,14 @@ class Lstm_Cnn_Model:
         cnn_model.add(Conv2D(128, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Flatten())
         cnn_model.summary()
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(4096, input_shape=(180, 4096), dropout=0.0, return_sequences=True))
+        lstm_model.add(LSTM(1600, input_shape=(180, 1600), dropout=0.0, return_sequences=True))
+        lstm_model.add(TimeDistributed(Dense(2048)))
         lstm_model.add(TimeDistributed(Dense(4096)))
         lstm_model.add(TimeDistributed(Dense(10000)))
         lstm_model.add(TimeDistributed(Reshape((100, 100))))

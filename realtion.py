@@ -8,6 +8,21 @@ def bn(a):
         a[i] = (a[i] - np.min(a[i])) / (np.max(a[i]) - np.min(a[i]))
     return a
 
+def correlation(x, y):
+    x_mean = np.mean(x)
+    y_mean = np.mean(y)
+
+    sx = np.std(x)
+    sy = np.std(y)
+
+    s = 0
+    for x1, y1 in zip(x, y):
+        s += (x1 - x_mean) * (y1 - y_mean)
+
+    r = s /  (sx * sy) / (len(x) - 1)
+
+    return r
+
 lstm = np.load('../uav_test/tmpdata/lstmdata.npy')
 cnn = np.load('../uav_test/tmpdata/evaluate_cnn.npy')
 gtr = np.load('../uav_test/tmpdata/y_test.npy')

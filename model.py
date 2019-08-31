@@ -118,15 +118,14 @@ class Lstm_Cnn_Model:
         cnn_model.add(BatchNormalization())
         cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
-        cnn_model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+        cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(BatchNormalization())
         cnn_model.add(Flatten())
         cnn_model.summary()
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(2048, input_shape=(180, 2304), dropout=0.0, return_sequences=True))
+        lstm_model.add(LSTM(2048, input_shape=(180, 2048), dropout=0.0, return_sequences=True))
         lstm_model.add(TimeDistributed(Dense(4096)))
         cnn_model.add(BatchNormalization())
         lstm_model.add(TimeDistributed(Dense(10000)))
@@ -231,7 +230,7 @@ class Lstm_Cnn_Model:
         
         self.model.fit(x_train, y_train,
                     epochs=self.epics,
-                    batch_size=32,
+                    batch_size=16,
                     shuffle=True,
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)

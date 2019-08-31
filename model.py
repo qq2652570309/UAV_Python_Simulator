@@ -9,7 +9,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import losses, metrics
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
@@ -111,17 +111,21 @@ class Lstm_Cnn_Model:
         cnn_model.add(Conv2D(32, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Conv2D(128, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(128, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
+        cnn_model.add(Conv2D(64, kernel_size=(4, 4), activation='relu'))
         cnn_model.add(Flatten())
         cnn_model.summary()
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(25600, input_shape=(100, 25600), dropout=0.0, return_sequences=True))
-        lstm_model.add(TimeDistributed(Dense(16384)))
+        lstm_model.add(LSTM(4096, input_shape=(180, 4096), dropout=0.0, return_sequences=True))
+        lstm_model.add(TimeDistributed(Dense(4096)))
         lstm_model.add(TimeDistributed(Dense(10000)))
         lstm_model.add(TimeDistributed(Reshape((100, 100))))
         lstm_model.summary()
-        
+
         cnn_input = Input(shape=(180, 100, 100, 4))
         print('input shape: ',cnn_input.shape) # (?, 180, 100, 100, 4)
         lstm_input = TimeDistributed(cnn_model)(cnn_input)
@@ -183,7 +187,7 @@ class Lstm_Cnn_Model:
             self.model.compile(
                 optimizer='adadelta',
                 loss=weighted_binary_crossentropy(self.weight),
-                metrics=[recall]
+                metrics=[tf.keras.metrics.Recall()]
             )
 
 
@@ -274,8 +278,8 @@ if __name__ == "__main__":
     CSM = Lstm_Cnn_Model(
         # "data/trainingSets_diff.npy",
         # "data/groundTruths_diff.npy",
-        epics=10,
-        # weight=15.26
+        epics=1,
+        weight=6.44
     )
     CSM.loadData(
         "data/trainingSets_trajectory.npy",
@@ -284,7 +288,7 @@ if __name__ == "__main__":
     # CSM.layers()
     CSM.lstmLayers()
     # CSM.cnnLayer()
-    # CSM.train()
+    # CSM.train(mode='recall')
     # CSM.generateCNN()
     # CSM.test()
     # CSM.imageData(

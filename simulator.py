@@ -36,7 +36,7 @@ class Simulator:
         
         for index in range(self.iteration):
             startTimeIter = time.time()
-            # logging.info('At {0} iteration'.format(index))
+            logging.info('At {0} iteration'.format(index))
 
             self.area = Area()
             self.setColor(index, self.area.la, self.area.da)

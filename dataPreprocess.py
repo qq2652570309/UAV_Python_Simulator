@@ -1,5 +1,6 @@
 import numpy as np
-
+from simulator import Simulator
+import logging
 
 class Preprocess:
 
@@ -8,15 +9,15 @@ class Preprocess:
         self.tsr = None
         if groundTruth is None:
             self.gtr = np.load("data/groundTruths_raw.npy")
-        elif '.npy' in groundTruth:
-            self.gtr = np.load(groundTruth)
+        # elif '.npy' in groundTruth:
+        #     self.gtr = np.load(groundTruth)
         else:
             self.gtr = groundTruth
 
         if trainingSets is None:
             self.tsr = np.load("data/trainingSets_raw.npy")
-        elif '.npy' in trainingSets:
-            self.tsr = np.load(trainingSets)
+        # elif '.npy' in trainingSets:
+        #     self.tsr = np.load(trainingSets)
         else:
             self.tsr = trainingSets
         print('raw trainingSets', self.tsr.shape)
@@ -29,9 +30,9 @@ class Preprocess:
         else:
             self.gtr = self.gtr[:, start:end]
             self.tsr = self.tsr[:, start:end]
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('splitByTime complete\n')
+        logging.info(self.tsr.shape)
+        logging.info(self.gtr.shape)
+        logging.info('splitByTime complete\n')
 
     # only save the first sample after 30 seconds
     def from30toEnd(self):
@@ -51,7 +52,7 @@ class Preprocess:
         # self.gtr[self.gtr>m] = 1
         self.gtr[self.gtr<m] = 0
         self.gtr[self.gtr>=m] = 1
-        print('oneOrZero complete\n')
+        logging.info('oneOrZero complete\n')
 
 
     # ground truth only save the last second (the 30th second)
@@ -67,10 +68,10 @@ class Preprocess:
     def computeWeights(self):
         one = self.gtr[self.gtr>0].size
         zero = self.gtr[self.gtr==0].size
-        print('zero:',zero)
-        print('one:',one)
-        print('weight:',zero/one)
-        print('computeWeights complete\n')
+        logging.info('zero: {0}'.format(zero))
+        logging.info('one: {0}'.format(one))
+        logging.info('weight: {0}'.format(zero/one))
+        logging.info('computeWeights complete\n')
 
     # nomalize groud truth as the last second
     def batchNormalize(self):
@@ -106,8 +107,8 @@ class Preprocess:
     def checkGroundTruthIdentical(self):
         p = np.random.randint(0, len(self.gtr), 5)
         for i in range(1,5):
-            print(np.all(self.gtr[p[i]] == self.gtr[p[i-1]]))
-        print('check complete\n')
+            logging.info(np.all(self.gtr[p[i]] == self.gtr[p[i-1]]))
+        logging.info('check complete\n')
 
     def averageLaunchingNumber(self):
         sum1 = np.sum(self.tsr[:,:, 0:4, 0:4, 0])
@@ -125,19 +126,31 @@ class Preprocess:
 
 
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.disabled = False
+    logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.info('Started')
+
+    s = Simulator(iteration=10, row=100, column=100, time=240)
+    s.generate()
+    # print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
+    logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
     p = Preprocess(
         # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
         # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
-        # 'data/evaluate_groundTruths.npy',
-        # 'data/evaluate_trainingSets.npy',
+        s.groundTruths,
+        s.trainingSets,
     )
-    p.splitByTime(20)
+    p.splitByTime(60)
     # p.from30toEnd()
     p.oneOrZero()
-    p.generateDensity()
-    p.batchNormalize()
+    # p.generateDensity()
+    # p.batchNormalize()
     p.computeWeights()
     # p.broadCast()
     p.checkGroundTruthIdentical()
-    p.averageLaunchingNumber()
-    # p.saveData()
+    # p.averageLaunchingNumber()
+    p.saveData('trajectory')
+
+    logging.info('Finished dataPreprocess')
+    print('Finished dataPreprocess')

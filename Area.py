@@ -7,38 +7,46 @@ import matplotlib.pyplot as plt
 launchingArea = [
     [
         [1, 1],
-        [3, 3],
+        [6, 6],
     ],
     [
-        [13, 18],
-        [15, 20],
+        [23, 28],
+        [28, 33],
     ],
     [
-        [28, 28],
-        [30, 30],
+        [48, 18],
+        [53, 23],
     ],
     [
-        [23, 23],
-        [25, 25],
+        [63, 63],
+        [68, 68],
+    ],
+    [
+        [89, 73],
+        [94, 78],
     ],
 ]
 
 destinationArea = [
     [
         [3, 26],
-        [5, 28],
+        [8, 31],
     ],
     [
-        [4, 15],
-        [6, 17],
+        [14, 55],
+        [19, 60],
     ],
     [
-        [15, 8],
-        [17, 10],
+        [35, 8],
+        [40, 13],
     ],
     [
-        [28, 3],
-        [30, 5],
+        [68, 83],
+        [73, 88],
+    ],
+    [
+        [88, 3],
+        [93, 8],
     ]
 ]
 
@@ -80,13 +88,13 @@ class Area:
         result = []
         possiblity = 0
         for i in range(len(self.la)):
-            if i % 9 == 0:
+            if i % 25 == 0:
                 possiblity = np.random.uniform(low, high)
                 # print(self.la[i])
             point = np.append(self.la[i], possiblity)
             result.append(np.round(point, decimals=2))
         if n != None:
-            result = random.sample(result, k=3)
+            result = random.sample(result, k=n)
         return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):
@@ -119,4 +127,4 @@ class Area:
 
 if __name__ == "__main__":
     a = Area()
-    a.image(32,save=True)
+    a.image(100,save=True)

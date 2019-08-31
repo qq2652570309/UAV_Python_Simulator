@@ -1,6 +1,7 @@
 import numpy as np
 from simulator import Simulator
 import logging
+import time
 
 class Preprocess:
 
@@ -132,8 +133,10 @@ if __name__ == "__main__":
     logging.info('Started')
 
     s = Simulator(iteration=10, row=100, column=100, time=240)
+    startTimeTotal = time.time()
     s.generate()
     # print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
+    logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
     logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
     p = Preprocess(
         # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',

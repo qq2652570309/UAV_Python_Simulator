@@ -284,7 +284,7 @@ if __name__ == "__main__":
     CSM = Lstm_Cnn_Model(
         # "data/trainingSets_diff.npy",
         # "data/groundTruths_diff.npy",
-        epics=1,
+        epics=10,
         weight=6.44
     )
     CSM.loadData(
@@ -294,7 +294,7 @@ if __name__ == "__main__":
     # CSM.layers()
     CSM.lstmLayers()
     # CSM.cnnLayer()
-    # CSM.train(mode='recall')
+    CSM.train(mode='recall')
     # CSM.generateCNN()
     # CSM.test()
     # CSM.imageData(

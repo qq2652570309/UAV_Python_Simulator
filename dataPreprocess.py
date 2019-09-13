@@ -6,21 +6,21 @@ import time
 class Preprocess:
 
     def __init__(self, groundTruth=None, trainingSets=None):
-        self.gtr = None
-        self.tsr = None
         if groundTruth is None:
-            self.gtr = np.load("data/groundTruths_raw.npy")
+            self.gtr = np.load("data/row_groundTruths.npy")
         # elif '.npy' in groundTruth:
         #     self.gtr = np.load(groundTruth)
         else:
             self.gtr = groundTruth
 
         if trainingSets is None:
-            self.tsr = np.load("data/trainingSets_raw.npy")
+            self.tsr = np.load("data/row_trainingSets.npy")
         # elif '.npy' in trainingSets:
         #     self.tsr = np.load(trainingSets)
         else:
             self.tsr = trainingSets
+        logging.info('---Initial Shape---')
+        print('---Initial Shape---')
         print('raw trainingSets', self.tsr.shape)
         print('raw groundTruth: ', self.gtr.shape)
 
@@ -78,11 +78,11 @@ class Preprocess:
     def batchNormalize(self):
         for i in range(len(self.gtr)):
             self.gtr[i] = (self.gtr[i] - np.min(self.gtr[i])) / (np.max(self.gtr[i]) - np.min(self.gtr[i]))
-        print('min: ', np.min(self.gtr))
-        print('max: ', np.max(self.gtr))
-        print('mean: ', np.mean(self.gtr))
-        print('median: ', np.median(self.gtr))
-        print('batchNormalize complete\n')
+        logging.info('min: {0}'.format(np.min(self.gtr)))
+        logging.info('max: {0}'.format(np.max(self.gtr)))
+        logging.info('mean: {0}'.format(np.mean(self.gtr)))
+        logging.info('median: {0}'.format(np.median(self.gtr)))
+        logging.info('batchNormalize complete\n')
 
     # broadcast one sample to many 
     def broadCast(self):
@@ -95,8 +95,8 @@ class Preprocess:
     # (30, 32, 32) --> (32, 32)
     def generateDensity(self):
         self.gtr = np.sum(self.gtr, axis=1)
-        print(self.gtr.shape)
-        print('generateDensity complete\n')
+        logging.info(self.gtr.shape)
+        logging.info('generateDensity complete\n')
 
     def saveData(self, name='density'):
         np.save('data/trainingSets_{0}.npy'.format(name), self.tsr)
@@ -132,28 +132,35 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    s = Simulator(iteration=10, row=100, column=100, time=240)
+    s = Simulator(iteration=10, row=32, column=32, time=90)
     startTimeTotal = time.time()
     s.generate()
-    # print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
-    logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
+    
+    print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
+
+    logging.info('Finished')
+    np.save('data/row_trainingSets.npy', s.trainingSets)
+    np.save('data/row_groundTruths.npy', s.groundTruths)
+    np.save('data/positions.npy', s.positions)
+    print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
+    # logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
     logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
-    p = Preprocess(
-        # '../../wbai03/UAV_POSTPROCESS/data/groundTruths_raw.npy',
-        # '../../wbai03/UAV_POSTPROCESS/data/trainingSets_raw.npy'
-        s.groundTruths,
-        s.trainingSets,
-    )
-    p.splitByTime(60)
-    # p.from30toEnd()
-    p.oneOrZero()
-    # p.generateDensity()
-    # p.batchNormalize()
-    p.computeWeights()
-    # p.broadCast()
-    p.checkGroundTruthIdentical()
-    # p.averageLaunchingNumber()
-    p.saveData('trajectory')
+
+    p_traj = Preprocess()
+    p_traj.splitByTime(30)
+    p_traj.oneOrZero()
+    p_traj.computeWeights()
+    p_traj.checkGroundTruthIdentical()
+    p_traj.saveData('trajectory')
+
+    p_den = Preprocess()
+    p_den.splitByTime(30)
+    p_den.oneOrZero()
+    p_den.generateDensity()
+    p_den.batchNormalize()
+    p_den.computeWeights()
+    p_den.checkGroundTruthIdentical()
+    p_den.saveData('density')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

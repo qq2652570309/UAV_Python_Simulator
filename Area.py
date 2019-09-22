@@ -57,13 +57,24 @@ blockArea = [
 
 
 class Area:
-    def __init__(self):
+    def __init__(self, low, high):
         # self.la = np.concatenate(launchingArea, axis=0)
         # self.da = np.concatenate(destinationArea, axis=0)
-        # self.ba = blockArea
-        self.la = self.createArea(launchingArea)
-        self.da = self.createArea(destinationArea)
+        self.refresh()
         self.ba = blockArea
+
+    def refresh(self, mapSize=100, areaSize=3, num=10):
+        self.num = num
+        self.areaSize = areaSize
+        la, da = self.randomArea(mapSize, areaSize, num)
+        possiblity = 0
+        for i in range(len(la)):
+            if i % 9 == 0:
+                possiblity = np.random.uniform()
+            la[i] = np.append(la[i], possiblity)
+            la[i] = np.round(la[i], decimals=2)
+        self.la = la
+        self.da = da
 
     def createArea(self, vertices):
         result = []
@@ -76,29 +87,59 @@ class Area:
                     result.append([row,col])
         return result
 
-    def getLaunchPoint(self, low=0, high=1, n=None):
+    def getLaunchPoint(self, n=None):
         result = []
-        possiblity = 0
-        for i in range(len(self.la)):
-            if i % 9 == 0:
-                possiblity = np.random.uniform(low, high)
-                # print(self.la[i])
-            point = np.append(self.la[i], possiblity)
-            result.append(np.round(point, decimals=2))
-        if n != None:
-            result = random.sample(result, k=3)
+        for i in range(0,len(self.la),self.areaSize**2):
+            index = int(random.sample(range(i,i+self.areaSize**2),k=1)[0])
+            launchPoint = self.la[index]
+            result.append(launchPoint)
+        # if n != None:
+        #     result = random.sample(result, k=n)
+        #     return np.array(result)
         return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):
         if allPoints:
-            return self.da
+            return np.array(self.da)
         result = random.choice(np.random.permutation(self.da))
         return result[0], result[1]
     
     def getBlockPoint(self):
         return np.random.permutation(self.ba)
-        
     
+    def randomArea(self, mapSize=100, areaSize=3, num=10):
+        size = mapSize
+        locations = []
+        for x in range(1,mapSize-areaSize):
+            for y in range(1,mapSize-areaSize):
+                locations.append((x,y))
+        indices = list(range((mapSize-2*areaSize)*(mapSize-2*areaSize)))
+        random.shuffle(indices)
+
+        map = np.zeros((mapSize,mapSize))
+        areas = []
+        select = []
+
+        for i in indices:
+            if len(select) is num:
+                break
+            x ,y = locations[i]
+            qualified = True
+            for s in select:
+                sx ,sy = locations[s]
+                if abs(x-sx) < 10 and abs(y-sy) < 10:
+                    qualified = False
+                    break
+            if qualified:
+                select.append(i)
+                for j in range(0,areaSize):
+                    for k in range(0,areaSize):
+                        areas.append([x+j,y+k])
+                        map[x+j,y+k] = 1
+
+        half = int(len(areas)/2)
+        return areas[:half], areas[half:]
+
     def image(self, size, save=False):
         fig, axs = plt.subplots(1, 3, figsize=(10, 3))
         plt.gray()
@@ -115,8 +156,11 @@ class Area:
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(True)
         if save == True:
-            plt.savefig("img/result.png")
+            plt.savefig("img/AreaMap.png")
 
 if __name__ == "__main__":
-    a = Area()
-    a.image(32,save=True)
+    a = Area(0, 1)
+    print(a.getLaunchPoint())
+    # print(a.getDestination(allPoints=True))
+    # a.image(100,save=True)
+    # print(np.array(a.la))

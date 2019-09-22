@@ -17,7 +17,7 @@ class Simulator:
         self.time = time
         self.requiredDist = requiredDist
         self.timeInterval = timeInterval
-        self.area = Area()
+        self.area = Area(0,1)
         self.uavNum = uavNum
         # In channel, 0th is status that uav is launching at this second
         # 1st is launching rate of this point
@@ -38,7 +38,7 @@ class Simulator:
             startTimeIter = time.time()
             logging.info('At {0} iteration'.format(index))
 
-            self.area = Area()
+            self.area.refresh(mapSize=self.row, areaSize=3, num=10)
             self.setColor(index, self.area.la, self.area.da)
             
             # startPositions, endPositions = self.generatePositions() 
@@ -47,7 +47,7 @@ class Simulator:
             else:
                 startPositions = self.area.getLaunchPoint(low=0.1, high=0.5, n=self.uavNum)
 
-            for startRow, startCol, launchingRate in startPositions:
+            for currentTime in range(self.time):
                 # logging.info('   At start Point ({0}, {1})'.format(startRow, startCol))
                 # set traning sets
                 startRow = int(startRow)
@@ -55,7 +55,7 @@ class Simulator:
                 self.trainingSets[index,:,startRow,startCol,1] = launchingRate
 
                 # generate ground truth
-                for currentTime in range(self.time):
+                for startRow, startCol, launchingRate in startPositions:
                     succ = np.random.uniform(0,1) <= self.trainingSets[index,currentTime,startRow,startCol,1]
                     if succ:
                         self.totalUavNum += 1

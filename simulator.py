@@ -112,6 +112,7 @@ if __name__ == "__main__":
     print('total time: ', time.time() - startTimeIter)
     print('training shape: ', s.trainingSets.shape)
     print('groundTruth shape: ', s.groundTruths.shape)
-    np.save('data/test.npy',s.trainingSets)
+    np.save('data/trainingSets.npy',s.trainingSets)
+    np.save('data/groundTruths.npy',s.groundTruths)
     # logging.info('trainingSets: \n{0}'.format(s.trainingSets))
     # logging.info('groundTruths: \n{0}'.format(s.groundTruths))

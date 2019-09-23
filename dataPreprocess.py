@@ -2,58 +2,54 @@ import numpy as np
 from simulator import Simulator
 import logging
 import time
+import os
 
 class Preprocess:
 
     def __init__(self, groundTruth=None, trainingSets=None):
         if groundTruth is None:
-            self.gtr = np.load("data/row_groundTruths.npy")
-        # elif '.npy' in groundTruth:
-        #     self.gtr = np.load(groundTruth)
+            print("ground truth is none")
         else:
             self.gtr = groundTruth
-
         if trainingSets is None:
-            self.tsr = np.load("data/row_trainingSets.npy")
-        # elif '.npy' in trainingSets:
-        #     self.tsr = np.load(trainingSets)
+            print("training set is none")
         else:
             self.tsr = trainingSets
+        
         logging.info('---Initial Shape---')
         print('---Initial Shape---')
         print('raw trainingSets', self.tsr.shape)
         print('raw groundTruth: ', self.gtr.shape)
 
+    # save data from start to end
     def splitByTime(self, start=0, end=0):
         if end == 0:
             self.gtr = self.gtr[:, start:]
-            self.tsr = self.tsr[:, start:]
+            # self.tsr = self.tsr[:, start:]
         else:
             self.gtr = self.gtr[:, start:end]
-            self.tsr = self.tsr[:, start:end]
+            # self.tsr = self.tsr[:, start:end]
         logging.info(self.tsr.shape)
         logging.info(self.gtr.shape)
         logging.info('splitByTime complete\n')
 
-    # only save the first sample after 30 seconds
-    def from30toEnd(self):
-        # self.gtr = self.gtr[:1, 30:]
-        # self.tsr = self.tsr[:1, 30:]
-        self.gtr = self.gtr[:, 20:]
-        self.tsr = self.tsr[:, 20:]
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('from30toEnd complete\n')
 
     # switch all elements to zero or one 
-    def oneOrZero(self):
-        m = np.median(self.gtr[self.gtr!=0])
-        print('median:',m)
+    def oneOrZero(self, gtr):
+        m = np.median(gtr[gtr!=0])
+        logging.info('median: {0}'.format(m))
         # self.gtr[self.gtr<=m] = 0
         # self.gtr[self.gtr>m] = 1
-        self.gtr[self.gtr<m] = 0
-        self.gtr[self.gtr>=m] = 1
+        gtr[gtr<m] = 0
+        gtr[gtr>=m] = 1
         logging.info('oneOrZero complete\n')
+        return gtr
+
+
+    def densityToOne(self, gtr):
+        gtr[gtr>0] = 1
+        logging.info('densityToOne complete\n')
+        return gtr
 
 
     # ground truth only save the last second (the 30th second)
@@ -66,23 +62,31 @@ class Preprocess:
         print('lastSecond complete\n')
 
     # print number of non-zeros and zeros
-    def computeWeights(self):
-        one = self.gtr[self.gtr>0].size
-        zero = self.gtr[self.gtr==0].size
+    def computeWeights(self, gtr):
+        one = gtr[gtr>0].size
+        zero = gtr[gtr==0].size
         logging.info('zero: {0}'.format(zero))
         logging.info('one: {0}'.format(one))
         logging.info('weight: {0}'.format(zero/one))
         logging.info('computeWeights complete\n')
 
     # nomalize groud truth as the last second
-    def batchNormalize(self):
-        for i in range(len(self.gtr)):
-            self.gtr[i] = (self.gtr[i] - np.min(self.gtr[i])) / (np.max(self.gtr[i]) - np.min(self.gtr[i]))
-        logging.info('min: {0}'.format(np.min(self.gtr)))
-        logging.info('max: {0}'.format(np.max(self.gtr)))
-        logging.info('mean: {0}'.format(np.mean(self.gtr)))
-        logging.info('median: {0}'.format(np.median(self.gtr)))
+    def batchNormalize(self, gtr):
+        for i in range(len(gtr)):
+            gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
+        logging.info('min: {0}'.format(np.min(gtr)))
+        logging.info('max: {0}'.format(np.max(gtr)))
+        logging.info('mean: {0}'.format(np.mean(gtr)))
+        logging.info('median: {0}'.format(np.median(gtr)))
         logging.info('batchNormalize complete\n')
+        return gtr
+
+
+    # lumped map divided time, return with batch normalization
+    def averageDensity(self, gtr, time):
+        gtr = gtr/time
+        return self.batchNormalize(gtr)
+
 
     # broadcast one sample to many 
     def broadCast(self):
@@ -93,37 +97,80 @@ class Preprocess:
         print('broadCast complete\n')
         
     # (30, 32, 32) --> (32, 32)
-    def generateDensity(self):
-        self.gtr = np.sum(self.gtr, axis=1)
-        logging.info(self.gtr.shape)
+    def generateDensity(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        logging.info(gtr.shape)
         logging.info('generateDensity complete\n')
+        return temp    
 
-    def saveData(self, name='density'):
-        np.save('data/trainingSets_{0}.npy'.format(name), self.tsr)
-        np.save('data/groundTruths_{0}.npy'.format(name), self.gtr)
-        print('trainingSets shape', self.tsr.shape)
-        print('groundTruths shape', self.gtr.shape)
-        print('save complete\n')
+    def save(self, data, name='feature', directory='test'):
+        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(directory)):
+            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(directory))
+            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(directory), 0o777)
+        if name is 'feature':
+            print('training_data_trajectory shape is {0}'.format(data.shape))
+            np.save('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(directory), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(directory), 0o777)
+        elif name is 'cnn':
+            print('training_label_density shape is {0}'.format(name))
+            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
+        elif name is 'lstm':
+            print('training_label_trajectory.npy shape is {0}'.format(name))
+            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
+        elif name is 'pattern':
+            print('training_label_trajectory.npy shape is {0}'.format(name))
+            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
+        else:
+            print('stop')
+        print('{0} save complete\n'.format(name))
 
-    def checkGroundTruthIdentical(self):
-        p = np.random.randint(0, len(self.gtr), 5)
+    def checkGroundTruthIdentical(self, gtr):
+        p = np.random.randint(0, len(gtr), 5)
         for i in range(1,5):
-            logging.info(np.all(self.gtr[p[i]] == self.gtr[p[i-1]]))
+            logging.info(np.all(gtr[p[i]] == gtr[p[i-1]]))
+        logging.info('check complete\n')
+    
+    def checkDataIdentical(self, data1, data2):
+        # p = np.random.randint(0, len(data1), 5)
+        for i in range(0,5):
+            logging.info(np.all(data1[i] == data2[i]))
         logging.info('check complete\n')
 
-    def averageLaunchingNumber(self):
-        sum1 = np.sum(self.tsr[:,:, 0:4, 0:4, 0])
-        sum2 = np.sum(self.tsr[:,:, 22:26, 23:26, 0])
-        sum3 = np.sum(self.tsr[:,:, 27:31, 27:31, 0])
-        sampleNum = self.tsr.shape[0]
-        timeTotal = self.tsr.shape[1]
-        ave1 = sum1 / sampleNum / timeTotal * 5
-        ave2 = sum2 / sampleNum / timeTotal * 5
-        ave3 = sum3 / sampleNum / timeTotal * 5
-        print('In area1, average number of UAV launched: ', ave1)
-        print('In area2, average number of UAV launched: ', ave2)
-        print('In area3, average number of UAV launched: ', ave3)
-        print('average lauching complete\n')
+
+    def compressTime(self):
+        # feature: (10, 240, 100, 100, 2)
+        # label  : (10, 240, 100, 100)
+        # nf : (10,24,100,100,2)
+        # nl : (10,24,100,100)
+        nf = np.zeros((self.tsr.shape[0],int(self.tsr.shape[1]/10),self.tsr.shape[2],self.tsr.shape[3],self.tsr.shape[4]))
+        nl = np.zeros((self.gtr.shape[0],int(self.gtr.shape[1]/10),self.gtr.shape[2],self.gtr.shape[3]))
+
+        for i in range(10):
+            lb = self.gtr[i]
+            for it in range(10, 241, 10):
+                time_idx = int(it/10)-1
+                nl[i, time_idx] = np.sum(lb[it-10:it], axis=0)/10
+                nf[i,time_idx,:,:,1] = lb[it-1,:,:]/10
+        self.tsr = nf
+        self.gtr = nl
+
+
+    def featureLabel(self, directory='test'):
+        logging.info('generating lstm feature\n')
+        self.save(self.tsr, 'feature', directory=directory)
+        
+        logging.info('generating pattern labels\n')
+        patternGt = np.copy(self.gtr)
+        # patternGt = self.oneOrZero(patternGt)
+        # patternGt = self.generateDensity(patternGt)
+        # patternGt = self.averageDensity(patternGt, 60)
+        self.save(patternGt, 'pattern', directory=directory)
+        
+        print('finish saving')
+
 
 
 if __name__ == "__main__":
@@ -132,35 +179,34 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    s = Simulator(iteration=10, row=32, column=32, time=90)
+    
+    s = Simulator(batch=10, row=100, column=100, time=200)
     startTimeTotal = time.time()
     s.generate()
     
     print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
 
+    print(s.trainingSets.shape)
+    print(s.groundTruths.shape)
+    
+    # feature: (10, 200, 100, 100, 1)
+    # label:   (10, 200, 100, 100)
+
+    p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
+    p.compressTime()
+    p.featureLabel(directory='cnn')
+    
+    
+    '''
     logging.info('Finished')
-    np.save('data/row_trainingSets.npy', s.trainingSets)
-    np.save('data/row_groundTruths.npy', s.groundTruths)
-    np.save('data/positions.npy', s.positions)
     print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
     # logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
     logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
-
-    p_traj = Preprocess()
-    p_traj.splitByTime(30)
-    p_traj.oneOrZero()
-    p_traj.computeWeights()
-    p_traj.checkGroundTruthIdentical()
-    p_traj.saveData('trajectory')
-
-    p_den = Preprocess()
-    p_den.splitByTime(30)
-    p_den.oneOrZero()
-    p_den.generateDensity()
-    p_den.batchNormalize()
-    p_den.computeWeights()
-    p_den.checkGroundTruthIdentical()
-    p_den.saveData('density')
+    
+    p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
+    # p.splitByTime(30)
+    p.featureLabel()
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')
+    '''

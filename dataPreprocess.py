@@ -149,11 +149,12 @@ class Preprocess:
         nl = np.zeros((self.gtr.shape[0],int(self.gtr.shape[1]/10),self.gtr.shape[2],self.gtr.shape[3]))
 
         for i in range(10):
-            lb = self.gtr[i]
+            ft, lb = self.tsr[i], self.gtr[i]
             for it in range(10, 241, 10):
                 time_idx = int(it/10)-1
                 nl[i, time_idx] = np.sum(lb[it-10:it], axis=0)/10
                 nf[i,time_idx,:,:,1] = lb[it-1,:,:]/10
+                nf[i,time_idx,:,:,0] = ft[it-1,:,:,0]
         self.tsr = nf
         self.gtr = nl
 
@@ -180,7 +181,7 @@ if __name__ == "__main__":
     logging.info('Started')
 
     
-    s = Simulator(batch=10, row=100, column=100, time=200)
+    s = Simulator(batch=10, row=100, column=100, time=240)
     startTimeTotal = time.time()
     s.generate()
     

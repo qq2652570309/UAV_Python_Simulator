@@ -17,7 +17,11 @@ class Image:
                 x = np.load(self.data[index])
             else:
                 x = self.data[index]
+                
             print(x.shape)
+            if(x.shape[-1]==2):
+                x = x[:, :, :, :, 1]
+                x.reshape(10, 24, 100, 100)
             for i in range(1, n+1):
                 # display original
                 ax = plt.subplot(3, n, i + index*n)
@@ -43,9 +47,8 @@ class Image:
 
 if __name__ == "__main__":
     data = [
-        'data/groundTruths_density.npy',
-        'data/groundTruths_density.npy',
-        'data/positions.npy',
+        '../../../data/zzhao/uav_regression/cnn/training_data_trajectory.npy',
+        '../../../data/zzhao/uav_regression/cnn/training_label_density.npy',
     ]
     rowHeader = ['groundTrue', 'prediction', 'positions']
 

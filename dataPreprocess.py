@@ -104,13 +104,13 @@ class Preprocess:
         return temp    
 
     def save(self, data, name='feature', directory='test'):
-        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(directory)):
-            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(directory))
-            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(directory), 0o777)
+        # if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(directory)):
+        #     os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(directory))
+        #     os.chmod('../../../data/zzhao/uav_regression/{0}'.format(directory), 0o777)
         if name is 'feature':
             print('training_data_trajectory shape is {0}'.format(data.shape))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(directory), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(directory), 0o777)
+            np.save('data/training_data_trajectory.npy'.format(directory), data)
+            os.chmod('data/training_data_trajectory.npy'.format(directory), 0o777)
         elif name is 'cnn':
             print('training_label_density shape is {0}'.format(name))
             np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
@@ -121,8 +121,8 @@ class Preprocess:
             os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
         elif name is 'pattern':
             print('training_label_trajectory.npy shape is {0}'.format(name))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
+            np.save('data/training_label_density.npy'.format(directory), data)
+            os.chmod('data/training_label_density.npy'.format(directory), 0o777)
         else:
             print('stop')
         print('{0} save complete\n'.format(name))

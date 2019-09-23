@@ -9,7 +9,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import losses, metrics
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
@@ -69,13 +69,17 @@ class Lstm_Cnn_Model:
         # cnn_model.summary()
         
         
-        cnn_model.add(Flatten(input_shape=(100, 100, 2)))
-        cnn_model.add(Dense(16384))
+        cnn_model.add(Conv2D(4, kernel_size=(3, 3),
+                        activation='relu',
+                        input_shape=(100, 100, 2)))
+        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(Flatten())
         cnn_model.add(Dense(8192))
         cnn_model.add(Dense(4096))
         cnn_model.add(Dense(2048))
         cnn_model.add(Dense(1024))
-        # cnn_model.summary()
+        
+        cnn_model.summary()
         
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
@@ -185,7 +189,7 @@ class Lstm_Cnn_Model:
         
         self.model.fit(x_train, y_train,
                     epochs=self.epics,
-                    batch_size=16,
+                    batch_size=8,
                     shuffle=True,
                     validation_data=(x_test, y_test),
                     callbacks=callbacks)
@@ -221,8 +225,8 @@ class Lstm_Cnn_Model:
         np.save('data/evaluate_lstm.npy', prediction)
 
     def test(self):
-        x = np.load('data/evaluate_lstm.npy')
-        y = np.load('data/evaluate_groundTruths.npy')
+        x = np.load('data/training_data_trajectory1.npy')
+        y = np.load('data/training_label_density1.npy')
         print(x.shape)
         print(y.shape)
         self.model.load_weights('checkpoints/cnn-07-0.03.hdf5')
@@ -242,8 +246,8 @@ if __name__ == "__main__":
         weight=6.44
     )
     CSM.loadData(
-        '../../../data/zzhao/uav_regression/cnn/training_data_trajectory.npy',
-        '../../../data/zzhao/uav_regression/cnn/training_label_density.npy',
+        'data/training_data_trajectory.npy',
+        'data/training_label_density.npy',
     )
     # CSM.layers()
     CSM.lstmLayers()

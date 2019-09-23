@@ -1,118 +1,51 @@
-from simulator import Simulator
-from dataPreprocess import Preprocess
 from model import Lstm_Cnn_Model
-from generateImage import Image
-from Area import Area
-
-import sys
+from dataPreprocess import Preprocess
+from simulator import Simulator
 import numpy as np
-import time
-
-# print ('Number of arguments:', len(sys.argv), 'arguments.')
-# print ('Argument List:', str(sys.argv))
+from generateImage import Image
 
 
-def simulate(n=None, uavNum=None):
-    if n==None:
-        s = Simulator(iteration=10000, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
-    else:
-        s = Simulator(iteration=n, row=32, column=32, time=120, uavNum=uavNum, timeInterval=5)
-    startTimeIter = time.time()
-    s.generate()
-    print('trainingSets_raw shape: ', s.trainingSets.shape)
-    print('groundTruths_raw shape: ', s.groundTruths.shape)
-    np.save('data/trainingSets_raw.npy', s.trainingSets)
-    np.save('data/groundTruths_raw.npy', s.groundTruths)
-    # np.save('data/positions.npy', s.positions)
-    print('total time: ', time.time() - startTimeIter)
+s = Simulator(batch=10, row=100, column=100, time=240)
+s.generate()
 
-def processSequence(p, mode):
-    p.splitByTime(20)
-    if mode == 'trajectory':
-        p.oneOrZero()
-        p.computeWeights()
-    else:
-        p.generateDensity()
-        p.batchNormalize()
-    p.checkGroundTruthIdentical()
-    p.averageLaunchingNumber()
-    return p.tsr, p.gtr
+p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
+p.compressTime()
 
-def preprocess(mode='density'):
-    p = Preprocess()
-    processSequence(p, mode=mode)
-    if mode=='density':
-        p.saveData(name='density')
-    if mode=='trajectory':
-        p.saveData(name='trajectory')
+CSM = Lstm_Cnn_Model(
+        epics=10,
+        weight=6.44
+    )
+
+CSM.lstmLayers()
+
+x = p.tsr
+y = p.gtr
+print(x.shape)
+print(y.shape)
+CSM.model.load_weights('checkpoints/mse-01-0.00.hdf5')
+CSM.configure('mse')
+result = CSM.model.evaluate(x, y, batch_size=1)
+print('result: ', result)
+prediction = CSM.model.predict(x)
+print(prediction.shape)
+# prediction = np.round(np.clip(prediction, 0, 1))
+# np.save('data/evaluate_cnn.npy', prediction)
+# np.save('data/y_test.npy', y)
 
 
-def train(mode='density', epics=3, weight=1):
-    CSM = Lstm_Cnn_Model(epics=epics, weight=weight)
-    if mode=='density':
-        CSM.loadData(
-            "data/trainingSets_density.npy",
-            "data/groundTruths_density.npy"
-        )
-        CSM.layers()
-        CSM.train('mse')
-    elif mode=='trajectory':
-        CSM.loadData(
-            "data/trainingSets_trajectory.npy",
-            "data/groundTruths_trajectory.npy"
-        )
-        CSM.lstmLayers()
-        CSM.train('recall')
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
+plt.gray()
+plt.imshow(prediction[0,15])
+plt.savefig('img/test.png')
 
-def img(mode='density', ckpt=''):
-    s = Simulator(iteration=10, row=32, column=32, time=120, uavNum=2, timeInterval=5)
-    s.generate()
-    
-    p = Preprocess(groundTruth=s.groundTruths, trainingSets=s.trainingSets)
-    x, y = processSequence(p,mode)
+# data = [
+#         y,
+#         prediction,
+#     ]
+# rowHeader = ['groundTrue', 'prediction']
 
-    
-    CSM = Lstm_Cnn_Model()
-    if mode is 'density':
-        CSM.layers()
-        prediction, groundtruth = CSM.imageData(
-            ckpt=ckpt,
-            x=x,
-            y=y,
-            mode='mse')
-    else:
-        CSM.lstmLayers()
-        prediction, groundtruth = CSM.imageData(
-            ckpt=ckpt,
-            x=x,
-            y=y,
-            mode='recall',
-            isRound=True)
-    print(prediction.shape)
-    print(groundtruth.shape)
-
-
-    data=[groundtruth, prediction, s.positions]
-    rowHeader = ['groundTrue', 'prediction', 'positions']
-    if mode is 'density':
-        colHeader = 'sample'
-    else:
-        colHeader = 'time'
-    i = Image(data,rowHeader,colHeader)
-    i.generate()
-    
-
-def main():
-    mode='density'
-    # mode='trajectory'
-
-    # simulate(n=10000, uavNum=10)
-    # preprocess(mode=mode)
-    train(mode=mode, epics=3, weight=151.97)
-    # img(mode=mode, ckpt='checkpoints/mse-02-0.06')
-
-
-
-if __name__ == "__main__":
-    main()
+# i = Image(data, rowHeader, 'test')
+# i.generate()

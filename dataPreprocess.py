@@ -154,7 +154,9 @@ class Preprocess:
                 time_idx = int(it/10)-1
                 nl[i, time_idx] = np.sum(lb[it-10:it], axis=0)/10
                 nf[i,time_idx,:,:,1] = lb[it-1,:,:]/10
+                nf[i,time_idx,:,:,1] = (nf[i,time_idx,:,:,1] - np.min(nf[i,time_idx,:,:,1])) / (np.max(nf[i,time_idx,:,:,1]) - np.min(nf[i,time_idx,:,:,1]))
                 nf[i,time_idx,:,:,0] = ft[it-1,:,:,0]
+            nl[i] = self.batchNormalize(nl[i])
         self.tsr = nf
         self.gtr = nl
 
@@ -181,7 +183,7 @@ if __name__ == "__main__":
     logging.info('Started')
 
     
-    s = Simulator(batch=10, row=100, column=100, time=240)
+    s = Simulator(batch=1000, row=100, column=100, time=240)
     startTimeTotal = time.time()
     s.generate()
     

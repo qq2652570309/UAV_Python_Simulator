@@ -73,22 +73,23 @@ class Lstm_Cnn_Model:
                         activation='relu',
                         input_shape=(100, 100, 2)))
         cnn_model.add(MaxPooling2D(pool_size=(2,2)))
+        cnn_model.add(BatchNormalization())
         cnn_model.add(Flatten())
         cnn_model.add(Dense(8192))
-        cnn_model.add(Dense(4096))
-        cnn_model.add(Dense(2048))
-        cnn_model.add(Dense(1024))
+        # cnn_model.add(Dense(4096))
+        # cnn_model.add(Dense(2048))
+        # cnn_model.add(Dense(1024))
         
         cnn_model.summary()
         
 
         # (30*1024) = 2^15, 16384 = 2^14, 4096 = 2^12, 2014 = 2^10 
         lstm_model = Sequential()
-        lstm_model.add(LSTM(2048, input_shape=(24, 1024), dropout=0.0, return_sequences=True))
-        lstm_model.add(TimeDistributed(Dense(4096)))
+        lstm_model.add(LSTM(8192, input_shape=(24, 8192), dropout=0.0, return_sequences=True))
+        # lstm_model.add(TimeDistributed(Dense(4096)))
         lstm_model.add(TimeDistributed(Dense(8192)))
         cnn_model.add(BatchNormalization())
-        lstm_model.add(TimeDistributed(Dense(10000)))
+        lstm_model.add(TimeDistributed(Dense(10000, activation='softmax')))
         cnn_model.add(BatchNormalization())
         lstm_model.add(TimeDistributed(Reshape((100, 100))))
         # lstm_model.summary()
@@ -99,30 +100,6 @@ class Lstm_Cnn_Model:
 
         self.model = Model(inputs=cnn_input, outputs=lstm_output)
         
-
-    def cnnLayer(self):
-        cnn_model = Sequential()
-        cnn_model.add(Reshape((32,32,1), input_shape=(32, 32)))
-        cnn_model.add(Conv2D(8, kernel_size=(3,3), activation='relu',))
-        cnn_model.add(Conv2D(16, kernel_size=(3,3), activation='relu'))
-        cnn_model.add(MaxPooling2D(pool_size=(2,2)))
-        cnn_model.add(Flatten())
-        cnn_model.add(Dense(3136))
-        cnn_model.add(Reshape((14, 14, 16)))
-        cnn_model.add(UpSampling2D(size=(2,2)))
-        cnn_model.add(Conv2DTranspose(8, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(BatchNormalization())
-        cnn_model.add(Conv2DTranspose(1, kernel_size=(3, 3), activation='relu'))
-        cnn_model.add(BatchNormalization())
-        cnn_model.add(Reshape((32,32)))
-        cnn_model.summary()
-
-        cnn_input = Input(shape=(32,32))
-        print('input shape: ',cnn_input.shape) # (?, 30, 16, 16, 4)
-        cnn_output = cnn_model(cnn_input)
-
-        self.model = Model(inputs=cnn_input, outputs=cnn_output)
-
 
     def configure(self, mode='mse'):
         def weighted_binary_crossentropy(weights):
@@ -242,7 +219,7 @@ class Lstm_Cnn_Model:
 
 if __name__ == "__main__":
     CSM = Lstm_Cnn_Model(
-        epics=10,
+        epics=3,
         weight=6.44
     )
     CSM.loadData(

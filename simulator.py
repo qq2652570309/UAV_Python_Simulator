@@ -51,9 +51,10 @@ class Simulator:
                     if succ:
                         self.totalUavNum += 1
                         endRow, endCol = self.area.getDestination()
+                        endRow = int(endRow)
+                        endCol = int(endCol)
+                        self.trainingSets[batch_idx,:,endRow,endCol,0] = -0.33
                         remainingTime = self.time - currentTime
-                        
-                        # logging.info('      At time {0}, ({1}, {2}) --> ({3}, {4})'.format(currentTime, startRow, startCol, endRow, endCol))
                         flyingTime = 0
                         if remainingTime >= abs(startCol-endCol)+1 :
                             # enough time for horizontal

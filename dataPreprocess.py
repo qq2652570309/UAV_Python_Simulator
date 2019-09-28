@@ -16,10 +16,14 @@ class Preprocess:
         else:
             self.tsr = trainingSets
         
+        logging.info('')
         logging.info('---Initial Shape---')
+        logging.info('  initial feature: {0}'.format(self.tsr.shape))
+        logging.info('  initial label: {0}\n'.format(self.gtr.shape))
         print('---Initial Shape---')
-        print('raw trainingSets', self.tsr.shape)
-        print('raw groundTruth: ', self.gtr.shape)
+        print('initial feature', self.tsr.shape)
+        print('initial label: ', self.gtr.shape)
+        print('')
 
     # save data from start to end
     def splitByTime(self, start=0, end=0):
@@ -61,78 +65,7 @@ class Preprocess:
         self.gtr = gtr1
         print('lastSecond complete\n')
 
-    # print number of non-zeros and zeros
-    def computeWeights(self, gtr):
-        one = gtr[gtr>0].size
-        zero = gtr[gtr==0].size
-        logging.info('zero: {0}'.format(zero))
-        logging.info('one: {0}'.format(one))
-        logging.info('weight: {0}'.format(zero/one))
-        logging.info('computeWeights complete\n')
 
-    # nomalize groud truth as the last second
-    def batchNormalize(self, gtr):
-        for i in range(len(gtr)):
-            gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
-        logging.info('min: {0}'.format(np.min(gtr)))
-        logging.info('max: {0}'.format(np.max(gtr)))
-        logging.info('mean: {0}'.format(np.mean(gtr)))
-        logging.info('median: {0}'.format(np.median(gtr)))
-        logging.info('batchNormalize complete\n')
-        return gtr
-
-
-    # lumped map divided time, return with batch normalization
-    def averageDensity(self, gtr, time):
-        gtr = gtr/time
-        return self.batchNormalize(gtr)
-
-
-    # broadcast one sample to many 
-    def broadCast(self):
-        self.tsr = np.broadcast_to(self.tsr, (10000, 30, 32, 32, 4))
-        self.gtr = np.broadcast_to(self.gtr, (10000, 30, 32, 32))
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('broadCast complete\n')
-        
-    # (30, 32, 32) --> (32, 32)
-    def generateDensity(self, gtr):
-        temp = np.sum(gtr, axis=1)
-        logging.info(temp.shape)
-        logging.info('generateDensity complete\n')
-        return temp    
-
-
-    def generatePattern(self, gtr):
-        temp = np.sum(gtr, axis=1)
-        temp[temp>0] = 1
-        logging.info(temp.shape)
-        logging.info('generatePattern complete\n')
-        return temp
-
-
-
-    def save(self, data, name='feature', direcoty='test'):
-        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
-            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
-            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
-        if name is 'feature':
-            print('training_data_trajectory shape is {0}'.format(data.shape))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(direcoty), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(direcoty), 0o777)
-        else:
-            print('training_label_density shape is {0}'.format(name))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(direcoty), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(direcoty), 0o777)
-        print('{0} save complete\n'.format(name))
-
-    def checkGroundTruthIdentical(self, gtr):
-        p = np.random.randint(0, len(gtr), 5)
-        for i in range(1,5):
-            logging.info(np.all(gtr[p[i]] == gtr[p[i-1]]))
-        logging.info('check complete\n')
-    
     def checkDataIdentical(self, data1, data2):
         # p = np.random.randint(0, len(data1), 5)
         for i in range(0,5):
@@ -164,22 +97,103 @@ class Preprocess:
         self.tsr = nf
         self.gtr = nl
 
+    # print number of non-zeros and zeros
+    def computeWeights(self, gtr):
+        one = gtr[gtr>0].size
+        zero = gtr[gtr==0].size
+        logging.info('zero: {0}'.format(zero))
+        logging.info('one: {0}'.format(one))
+        logging.info('weight: {0}'.format(zero/one))
+        logging.info('computeWeights complete\n')
 
-    def inputDensity(self):
-        pass
+    # nomalize groud truth as the last second
+    def batchNormalize(self, gtr):
+        for i in range(len(gtr)):
+            gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
+        logging.info('      after batchNormalize')
+        logging.info('          min: {0}'.format(np.min(gtr)))
+        logging.info('          max: {0}'.format(np.max(gtr)))
+        logging.info('          mean: {0}'.format(np.mean(gtr)))
+        logging.info('          median: {0}'.format(np.median(gtr)))
+        return gtr
 
 
-    def featureLabel(self, direcoty='test'):
-        logging.info('generating lstm feature\n')
-        # self.save(self.tsr, name='feature', direcoty=direcoty)
+    # lumped map divided time, return with batch normalization
+    def averageDensity(self, gtr, time):
+        gtr = gtr/time
+        return self.batchNormalize(gtr)
+
+
+    # broadcast one sample to many 
+    def broadCast(self):
+        self.tsr = np.broadcast_to(self.tsr, (10000, 30, 32, 32, 4))
+        self.gtr = np.broadcast_to(self.gtr, (10000, 30, 32, 32))
+        print(self.tsr.shape)
+        print(self.gtr.shape)
+        print('broadCast complete\n')
         
-        logging.info('generating pattern labels\n')
-        patternGt = np.copy(self.gtr)
-        # patternGt = self.generatePattern(patternGt)
-        # patternGt = self.oneOrZero(patternGt)
-        patternGt = self.generateDensity(patternGt)
-        patternGt = self.averageDensity(patternGt, 60)
-        # self.save(patternGt, name='pattern', direcoty=direcoty)
+    # (30, 32, 32) --> (32, 32)
+    def generateDensity(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        logging.info('      density map is {0}'.format(temp.shape))
+        return temp    
+
+
+    def generatePattern(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        temp[temp>0] = 1
+        logging.info(temp.shape)
+        logging.info('generatePattern complete\n')
+        return temp
+
+
+    def save(self, data, name='test', direcoty='test'):
+        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
+            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
+            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
+        if 'lkjsdf' in name:
+            return
+        if 'data' in name:
+            if 'density' in name:
+                print(' {0} is {1}'.format(name, data.shape))
+                np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
+                os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
+            elif 'task' in name:
+                print(' {0} is {1}'.format(name, data.shape))
+                np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
+                os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
+            else:
+                print('No such feature! \n')
+        elif 'label' in name:
+            print(' {0} is {1}'.format(name, data.shape))
+            np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
+        else:
+            print('No such data! \n')
+        print(' {0} save complete\n'.format(name))
+
+
+    # generate density map from timestep start -> end
+    def intervalDensity(self, data, start, end):
+        logging.info('      generate density map from {0} to {1}'.format(start, end))
+        interval = data[:,start:end]
+        densityMap = self.generateDensity(interval)
+        return self.averageDensity(densityMap, end-start)
+
+
+    def featureLabel(self, direcoty='test'):        
+        logging.info('  process labels:')
+        trajectory = np.copy(self.gtr)
+        # densityLabel = (batch, 100, 100) in last 10 timesteps
+        densityLabel = self.intervalDensity(trajectory, 60, 70)
+        self.save(densityLabel, name='label_density', direcoty=direcoty)
+        logging.info('')
+        logging.info('  process feature:')
+        # desntiyFeature = (batch, 100, 100) in first 10 timesteps
+        desntiyFeature = self.intervalDensity(trajectory, 0, 10)
+        self.save(desntiyFeature, name='data_density', direcoty=direcoty)
+        # feature_task = (batch, 60, 15, 5)
+        self.save(self.tsr, name='data_tasks', direcoty=direcoty)
         
         print('finish saving')
 
@@ -190,7 +204,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    s = Simulator(batch=1, taskNum=15, row=100, column=100, time=120)
+    '''
+    s = Simulator(batch=1, taskNum=15, row=100, column=100, time=70)
     startTimeTotal = time.time()
     s.generate()
     
@@ -203,16 +218,18 @@ if __name__ == "__main__":
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
     print(s.trainingSets.shape)
     print(s.groundTruths.shape)
-
-    startTime = np.random.randint(0, 51, 1)
-    print(startTime)
-
     '''
-    p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
-    # p.splitByTime(30)
     
-    p.featureLabel(direcoty='test')
 
+    
+    # p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
+
+    trs = np.random.randint(100, size=(1, 60, 15, 5))
+    gtr = np.random.randint(100, size=(1, 70, 100, 100))
+    p = Preprocess(trainingSets=trs, groundTruth=gtr)
+    
+    p.featureLabel(direcoty='pnet_with_time')
+    '''
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')
     #'''

@@ -54,7 +54,6 @@ class Area:
         return np.random.permutation(self.ba)
     
     def randomArea(self, mapSize=100, areaSize=3, num=10):
-        size = mapSize
         locations = []
         for x in range(1,mapSize-areaSize):
             for y in range(1,mapSize-areaSize):

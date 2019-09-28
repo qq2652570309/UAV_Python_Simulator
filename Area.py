@@ -60,12 +60,11 @@ class Area:
     def __init__(self, low, high):
         # self.la = np.concatenate(launchingArea, axis=0)
         # self.da = np.concatenate(destinationArea, axis=0)
+        # self.ba = blockArea
         self.refresh()
         self.ba = blockArea
 
     def refresh(self, mapSize=100, areaSize=3, num=10):
-        self.num = num
-        self.areaSize = areaSize
         la, da = self.randomArea(mapSize, areaSize, num)
         possiblity = 0
         for i in range(len(la)):
@@ -88,15 +87,11 @@ class Area:
         return result
 
     def getLaunchPoint(self, n=None):
-        result = []
-        for i in range(0,len(self.la),self.areaSize**2):
-            index = int(random.sample(range(i,i+self.areaSize**2),k=1)[0])
-            launchPoint = self.la[index]
-            result.append(launchPoint)
-        # if n != None:
-        #     result = random.sample(result, k=n)
-        #     return np.array(result)
-        return np.random.permutation(result)
+        result = self.la
+        if n != None:
+            result = random.sample(result, k=n)
+        return np.array(result)
+        # return np.random.permutation(result)
     
     def getDestination(self, allPoints=False):
         if allPoints:
@@ -161,6 +156,5 @@ class Area:
 if __name__ == "__main__":
     a = Area(0, 1)
     print(a.getLaunchPoint())
-    # print(a.getDestination(allPoints=True))
-    # a.image(100,save=True)
-    # print(np.array(a.la))
+    print(a.getDestination(allPoints=True))
+    a.image(100,save=True)

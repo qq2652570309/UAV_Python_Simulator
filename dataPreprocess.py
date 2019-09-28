@@ -99,32 +99,32 @@ class Preprocess:
     # (30, 32, 32) --> (32, 32)
     def generateDensity(self, gtr):
         temp = np.sum(gtr, axis=1)
-        logging.info(gtr.shape)
+        logging.info(temp.shape)
         logging.info('generateDensity complete\n')
         return temp    
 
-    def save(self, data, name='feature', directory='test'):
-        # if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(directory)):
-        #     os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(directory))
-        #     os.chmod('../../../data/zzhao/uav_regression/{0}'.format(directory), 0o777)
+
+    def generatePattern(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        temp[temp>0] = 1
+        logging.info(temp.shape)
+        logging.info('generatePattern complete\n')
+        return temp
+
+
+
+    def save(self, data, name='feature', direcoty='test'):
+        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
+            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
+            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
         if name is 'feature':
             print('training_data_trajectory shape is {0}'.format(data.shape))
-            np.save('data/training_data_trajectory.npy'.format(directory), data)
-            os.chmod('data/training_data_trajectory.npy'.format(directory), 0o777)
-        elif name is 'cnn':
-            print('training_label_density shape is {0}'.format(name))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
-        elif name is 'lstm':
-            print('training_label_trajectory.npy shape is {0}'.format(name))
-            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), data)
-            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(directory), 0o777)
-        elif name is 'pattern':
-            print('training_label_trajectory.npy shape is {0}'.format(name))
-            np.save('data/training_label_density.npy'.format(directory), data)
-            os.chmod('data/training_label_density.npy'.format(directory), 0o777)
+            np.save('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(direcoty), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_data_trajectory.npy'.format(direcoty), 0o777)
         else:
-            print('stop')
+            print('training_label_density shape is {0}'.format(name))
+            np.save('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(direcoty), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/training_label_density.npy'.format(direcoty), 0o777)
         print('{0} save complete\n'.format(name))
 
     def checkGroundTruthIdentical(self, gtr):
@@ -139,41 +139,49 @@ class Preprocess:
             logging.info(np.all(data1[i] == data2[i]))
         logging.info('check complete\n')
 
-
     def compressTime(self):
-        # feature: (10, 240, 100, 100, 2)
-        # label  : (10, 240, 100, 100)
-        # nf : (10,24,100,100,2)
-        # nl : (10,24,100,100)
-        nf = np.zeros((self.tsr.shape[0],int(self.tsr.shape[1]/10),self.tsr.shape[2],self.tsr.shape[3],self.tsr.shape[4]))
+        # feature: (n, 200, 10,  5) --> (n, 20, 100, 5)
+        # label  : (n, 200, 100, 100) --> (n, 20, 100, 100)
+        # nf : (n, 20, 100, 5)
+        # nl : (n, 20, 100, 100)
+
+        nf = np.zeros((self.tsr.shape[0],int(self.tsr.shape[1]/10),self.tsr.shape[2]*10,self.tsr.shape[3]))
         nl = np.zeros((self.gtr.shape[0],int(self.gtr.shape[1]/10),self.gtr.shape[2],self.gtr.shape[3]))
 
         for i in range(10):
             ft, lb = self.tsr[i], self.gtr[i]
-            for it in range(10, 241, 10):
+            for it in range(10, 201, 10):
                 time_idx = int(it/10)-1
+                # every sample, generate density map in 10 time intervel
                 nl[i, time_idx] = np.sum(lb[it-10:it], axis=0)/10
-                nf[i,time_idx,:,:,1] = lb[it-1,:,:]/10
-                nf[i,time_idx,:,:,1] = (nf[i,time_idx,:,:,1] - np.min(nf[i,time_idx,:,:,1])) / (np.max(nf[i,time_idx,:,:,1]) - np.min(nf[i,time_idx,:,:,1]))
-                nf[i,time_idx,:,:,0] = ft[it-1,:,:,0]
+                # every sample, record all task
+                task_num = 0
+                for j in range(it-10, it):
+                    for k in range(10):
+                        nf[i, time_idx, task_num, :] = ft[i, j, k, :]
+                        task_num+=1
             nl[i] = self.batchNormalize(nl[i])
         self.tsr = nf
         self.gtr = nl
 
 
-    def featureLabel(self, directory='test'):
+    def inputDensity(self):
+        pass
+
+
+    def featureLabel(self, direcoty='test'):
         logging.info('generating lstm feature\n')
-        self.save(self.tsr, 'feature', directory=directory)
+        # self.save(self.tsr, name='feature', direcoty=direcoty)
         
         logging.info('generating pattern labels\n')
         patternGt = np.copy(self.gtr)
+        # patternGt = self.generatePattern(patternGt)
         # patternGt = self.oneOrZero(patternGt)
-        # patternGt = self.generateDensity(patternGt)
-        # patternGt = self.averageDensity(patternGt, 60)
-        self.save(patternGt, 'pattern', directory=directory)
+        patternGt = self.generateDensity(patternGt)
+        patternGt = self.averageDensity(patternGt, 60)
+        # self.save(patternGt, name='pattern', direcoty=direcoty)
         
         print('finish saving')
-
 
 
 if __name__ == "__main__":
@@ -182,34 +190,29 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    
-    s = Simulator(batch=1000, row=100, column=100, time=240)
+    s = Simulator(batch=1, taskNum=15, row=100, column=100, time=120)
     startTimeTotal = time.time()
     s.generate()
     
+    
+    logging.info('Finished')
+    logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
     print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
-
+    logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
+    print('total tasks number: ', s.totalUavNum)
+    logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
     print(s.trainingSets.shape)
     print(s.groundTruths.shape)
-    
-    # feature: (10, 200, 100, 100, 1)
-    # label:   (10, 200, 100, 100)
 
-    p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
-    p.compressTime()
-    p.featureLabel(directory='cnn')
-    
-    
+    startTime = np.random.randint(0, 51, 1)
+    print(startTime)
+
     '''
-    logging.info('Finished')
-    print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
-    # logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
-    logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
-    
     p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
     # p.splitByTime(30)
-    p.featureLabel()
+    
+    p.featureLabel(direcoty='test')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')
-    '''
+    #'''

@@ -4,44 +4,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-launchingArea = [
-    [
-        [1, 1],
-        [3, 3],
-    ],
-    [
-        [13, 18],
-        [15, 20],
-    ],
-    [
-        [28, 28],
-        [30, 30],
-    ],
-    [
-        [23, 23],
-        [25, 25],
-    ],
-]
-
-destinationArea = [
-    [
-        [3, 26],
-        [5, 28],
-    ],
-    [
-        [4, 15],
-        [6, 17],
-    ],
-    [
-        [15, 8],
-        [17, 10],
-    ],
-    [
-        [28, 3],
-        [30, 5],
-    ]
-]
-
 blockArea = [
     [15, 5],
     [16, 4],
@@ -74,17 +36,6 @@ class Area:
             la[i] = np.round(la[i], decimals=2)
         self.la = la
         self.da = da
-
-    def createArea(self, vertices):
-        result = []
-        vertices = random.sample(vertices, k=3)
-        for vertex in vertices:
-            start = vertex[0]
-            end = vertex[1]
-            for row in range(start[0],end[0]+1):
-                for col in range(start[1],end[1]+1):
-                    result.append([row,col])
-        return result
 
     def getLaunchPoint(self, n=None):
         result = self.la

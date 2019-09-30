@@ -21,55 +21,42 @@ def averageDensity(gtr, time):
 
 
 if __name__ == "__main__":
-    s = Simulator(time=200)
+    s = Simulator(time=110)
     startTimeTotal = time.time()
     s.generate()
 
     print('input shape is {0}\n'.format(s.trajectors.shape))
-
-
+    
+    stable = s.trajectors[:, 150:200,:]
+    # stableMap = np.zeros(shape=())
     end = 100
     interval=10
-    batch = int(end/interval) + 1
+    batchSize = s.trajectors.shape[0]
+    intervalNum = int(end/interval) + 1
 
-    analysis = np.zeros(shape=(batch, 100, 100))
+    analysis = np.zeros(shape=(batchSize, intervalNum, 100, 100))
     print('analysis shape is {0}\n'.format(analysis.shape))
 
+
+    
+    
+    
     for b in range(len(s.trajectors)):
         for i in range(0, end+1, interval):
             intervalTrajectory = s.trajectors[b, i:(i+interval),:]
             intervalDensity = generateDensity(intervalTrajectory)
+            intervalDensity = intervalDensity/interval
             intervalDensity = averageDensity(intervalDensity,interval)
-            analysis[int((i+9)/10)] = intervalDensity
-
-    for i in range(10):
-        mae = (np.abs(analysis[i] - analysis[10])).mean(axis=None) * 100
-        # mae = np.sum(np.abs(analysis[i] - analysis[10]), axis=None)
-        print(mae)
-
-
-    '''
-    data = [analysis]
-    rowHeader = ['analysis']
-
-    i = Image(data, rowHeader, 'intervel')
-    i.generate()
+            analysis[b, int((i+9)/10)] = intervalDensity
+    
+    
+    for b in range(batchSize):
+        print('samep {0} :'.format(b))
+        for i in range(10):
+            mae = (np.abs(analysis[b, i] - analysis[b, 10])).mean(axis=None) * 100
+            # mae = np.sum(np.abs(analysis[i] - analysis[10]), axis=None)
+            print('     ', mae)
+    
     #'''
-    '''
-    A = np.array([
-        [0.1 , 0.5],
-        [0.7, 0.9],
-    ])
 
-    B = np.array([
-        [0.2 , 0.5],
-        [0.7, 0.4],
-    ])
-
-    print((A - B))
-    print((A - B)**2)
-
-    mse = ((A - B)**2).mean(axis=None)
-    print(mse)
-    '''
     

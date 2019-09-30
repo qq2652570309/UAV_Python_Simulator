@@ -7,10 +7,10 @@ class Image:
     def __init__(self, data, rowHeader, colHeader):
         self.data = data
         self.rowHeader = rowHeader
-        self.colHeader = ['{0} {1}'.format(colHeader,col-1) for col in range(1, 11)]
+        self.colHeader = ['{0} {1}'.format(colHeader,col-1) for col in range(1, 12)]
 
     def generate(self):
-        n = 10
+        n = 11
         plt.figure(figsize=(20, 6))
         for index in range(len(self.data)):
             if '.npy' in self.data[index]:
@@ -42,7 +42,7 @@ class Image:
                 ax.get_xaxis().set_visible(False)
                 ax.get_yaxis().set_visible(False)
 
-        plt.savefig("img/density_cnn_32_32.png")
+        plt.savefig("img/analysis.png")
 
 
 if __name__ == "__main__":

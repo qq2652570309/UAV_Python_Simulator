@@ -21,8 +21,13 @@ def averageDensity(gtr, time):
 
 
 if __name__ == "__main__":
-    simulateTime = 210
-    s = Simulator(batch=3, time=simulateTime)
+    simulateTime = 200
+    batchSize = 10
+    moveStep = 10
+    window = 20
+    
+    
+    s = Simulator(batch=batchSize, time=simulateTime)
     startTimeTotal = time.time()
     s.generate()
 
@@ -30,10 +35,8 @@ if __name__ == "__main__":
     
     stable = s.trajectors[:, 150:200, :]
     # stableMap = np.zeros(shape=())
-    moveStep = 10
-    window = 30
     end = simulateTime-window
-    batchSize = s.trajectors.shape[0]
+    # batchSize = s.trajectors.shape[0]
     intervalNum = int(end/moveStep) + 1
 
     analysis = np.zeros(shape=(batchSize, intervalNum, 100, 100))
@@ -59,14 +62,27 @@ if __name__ == "__main__":
             analysis[b, int( (i+(interval-1)) / interval )] = intervalDensity
     #'''
     
+    
+    mae = np.zeros((batchSize,intervalNum-1))
+    # delta_mae = np.zeros((batchSize,18))
     for b in range(batchSize):
         print('sample {0} :'.format(b))
         for i in range(intervalNum-1):
             mae1 = (np.abs(analysis[b, i] - analysis[b, intervalNum-1])).mean(axis=None) * 100
-            mae2 = (np.abs(analysis[b, i] - analysis[b, intervalNum-1])).mean(axis=None) * 100
+            # mae2 = (np.abs(analysis[b, i+1] - analysis[b, intervalNum-1])).mean(axis=None) * 100
             # mae = np.sum(np.abs(analysis[i] - analysis[10]), axis=None)
             # print('     ', abs(mae1-mae2))
+            # delta = abs(mae1-mae2)
             print('     ', abs(mae1))
+            mae[b,i] = mae1
+            # delta_mae[b,i] = delta
+            
+    # print(delta_mae.shape)
+    print(mae.shape)
+    
+    np.save('data/mae.npy', mae)
+    # np.save('data/delta_mae.npy', delta_mae)
+    
     
     
 

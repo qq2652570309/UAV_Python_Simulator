@@ -42,8 +42,9 @@ class Area:
         for i in range(len(self.la)):
             if i % 9 == 0:
                 possiblity = np.random.uniform()
-            self.la[i,-1] = possiblity
-            self.la[i,-1] = np.round(self.la[i,-1], decimals=2)
+            # i = int(i) 
+            self.la[i][2] = possiblity
+            self.la[i][2] = np.round(self.la[i][2], decimals=2)
         self.la = self.la
         self.da = self.da
 

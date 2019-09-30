@@ -4,6 +4,7 @@
 # 2nd and 3rd is (x, y) postion of destination point
 '''
 import time
+import os
 import random
 import logging
 import numpy as np
@@ -11,28 +12,29 @@ from Area import Area
 
 
 class Simulator:
-    def __init__(self, batch = 1, time=120, mapSize=100,  taskNum=15):
+    def __init__(self, batch = 1, time=180, mapSize=100,  taskNum=15):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
         self.task_num = taskNum
-        self.start_time = random.choice(range(50))
         self.area = Area(0,1)
         # In channel, 1st and 2nd are (x, y) launching location, 
         # 3rd and 4th are (x, y) destination location
         # 5th is time
         self.tasks = np.zeros(shape=(batch, 60, taskNum, 5), dtype=int)
-        self.trajectors = np.zeros(shape=(batch, 120, mapSize, mapSize), dtype=int)
+        self.trajectors = np.zeros(shape=(batch, 70, mapSize, mapSize), dtype=int)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
-        # logging.info('finish init\n')
+        os.remove('log.txt')
 
 
     def generate(self):
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
+            trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
+            start_time = random.choice(range(0, 80))
 
             # time iteration
             for currentTime in range(self.time):
@@ -52,8 +54,8 @@ class Simulator:
                         endRow, endCol = self.area.getDestination()
 
                         # add info into channel
-                        if currentTime >= self.start_time + 10 and currentTime < self.start_time + 70:
-                            time_idx = currentTime - (self.start_time + 10)
+                        if currentTime >= start_time + 10 and currentTime < start_time + 70:
+                            time_idx = currentTime - (start_time + 10)
                             # print(time_idx, task_idx, currentTime, self.start_time + 10, self.start_time + 70)
                             self.tasks[batch_idx,time_idx,task_idx,0] = startRow
                             self.tasks[batch_idx,time_idx,task_idx,1] = startCol
@@ -76,7 +78,7 @@ class Simulator:
                             else:
                                 r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
                         t1 = np.arange(currentTime, currentTime+len(r))
-                        self.trajectors[batch_idx,t1,startRow,r] += 1
+                        trajectors[t1,startRow,r] += 1
                         remainingTime -= len(r)
                         self.totalFlyingTime += len(r)
 
@@ -95,13 +97,16 @@ class Simulator:
                                 else:
                                     c = np.arange(startRow-remainingTime, startRow)[::-1]
                             t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                            self.trajectors[batch_idx,t2, c, endCol] += 1
+                            trajectors[t2, c, endCol] += 1
                             self.totalFlyingTime += len(c)
-            logging.info('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
+            logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
-        self.trajectors = self.trajectors[:,self.start_time:self.start_time+70]
+            logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
+            self.trajectors[batch_idx] = trajectors[start_time:start_time+70]
 
 if __name__ == "__main__":
+    s = Simulator(batch=1, mapSize=100, time=120)
+    
     logger = logging.getLogger()
     logger.disabled = True
 
@@ -109,11 +114,11 @@ if __name__ == "__main__":
 
     logging.info('Started')
     startTimeIter = time.time()
-    s = Simulator(batch=1, mapSize=100, time=120)
-    s.generate()
-    print('UAV Avg Flying Time: ', s.totalFlyingTime/s.totalUavNum)
+    
+    # s.generate()
+    # print('UAV Avg Flying Time: ', s.totalFlyingTime/s.totalUavNum)
 
     logging.info('Finished')
     np.save('data/tasks.npy', s.tasks)
     np.save('data/trajectors.npy', s.trajectors)
-    print('Simulation Total Time: ', time.time() - startTimeIter)
+    # print('Simulation Total Time: ', time.time() - startTimeIter)

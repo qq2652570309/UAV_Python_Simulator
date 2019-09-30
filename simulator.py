@@ -22,10 +22,11 @@ class Simulator:
         # 3rd and 4th are (x, y) destination location
         # 5th is time
         self.tasks = np.zeros(shape=(batch, 60, taskNum, 5), dtype=int)
-        self.trajectors = np.zeros(shape=(batch, 70, mapSize, mapSize), dtype=int)
+        self.trajectors = np.zeros(shape=(batch, time, mapSize, mapSize), dtype=int)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
-        os.remove('log.txt')
+        if os.path.exists('./log.txt'):
+            os.remove('log.txt')
 
 
     def generate(self):
@@ -34,7 +35,8 @@ class Simulator:
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            start_time = random.choice(range(0, 80))
+            # start_time = random.choice(range(0, 80))
+            start_time=0
 
             # time iteration
             for currentTime in range(self.time):
@@ -102,7 +104,7 @@ class Simulator:
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
-            self.trajectors[batch_idx] = trajectors[start_time:start_time+70]
+            # self.trajectors[batch_idx] = trajectors[start_time:start_time+70]
 
 if __name__ == "__main__":
     s = Simulator(batch=1, mapSize=100, time=120)

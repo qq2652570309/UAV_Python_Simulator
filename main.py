@@ -21,7 +21,7 @@ def averageDensity(gtr, time):
 
 
 if __name__ == "__main__":
-    s = Simulator()
+    s = Simulator(time=200)
     startTimeTotal = time.time()
     s.generate()
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         print(mae)
 
 
-    
+    '''
     data = [analysis]
     rowHeader = ['analysis']
 

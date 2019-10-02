@@ -33,19 +33,25 @@ class Simulator:
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
-
-            self.area.updateLaunchRate()
-            # start_time = random.choice(range(0, 80))
-            start_time=0
+            start_time=50
 
             # time iteration
             for currentTime in range(self.time):
                 
+                startPositions = []
+                if currentTime < 50:
+                    for i in range(self.task_num):
+                        startRow = random.randint(0,99)
+                        startCol = random.randint(0,99)
+                        launchingRate = np.random.uniform(0,1)
+                        startPositions.append([startRow, startCol, launchingRate])
+                else:
+                    startPositions = self.area.getLaunchPoint(n=self.task_num)    
+                
                 # task iteration
-                startPositions = self.area.getLaunchPoint(n=self.task_num)
+                # startPositions = self.area.getLaunchPoint(n=self.task_num)
                 for task_idx, task_val in zip(range(len(startPositions)), startPositions):
                     startRow, startCol, launchingRate = task_val
-                # for startRow, startCol, launchingRate in startPositions:
                     startRow = int(startRow)
                     startCol = int(startCol)
                     succ = np.random.uniform(0,1) <= launchingRate
@@ -53,7 +59,11 @@ class Simulator:
                     # if there is a launching UAV
                     if succ:
                         self.totalUavNum += 1
-                        endRow, endCol = self.area.getDestination()
+                        if currentTime < 50:
+                            endRow = random.randint(0,99)
+                            endCol = random.randint(0,99)
+                        else:
+                            endRow, endCol = self.area.getDestination()
 
                         # add info into channel
                         if currentTime >= start_time + 10 and currentTime < start_time + 70:
@@ -105,9 +115,10 @@ class Simulator:
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
             self.trajectors[batch_idx] = trajectors
+        self.trajectors = self.trajectors[:,50:]
 
 if __name__ == "__main__":
-    s = Simulator(batch=1, mapSize=100, time=120)
+    s = Simulator(batch=1, mapSize=100, time=180)
     
     logger = logging.getLogger()
     logger.disabled = True
@@ -117,7 +128,7 @@ if __name__ == "__main__":
     logging.info('Started')
     startTimeIter = time.time()
     
-    # s.generate()
+    s.generate()
     # print('UAV Avg Flying Time: ', s.totalFlyingTime/s.totalUavNum)
 
     logging.info('Finished')

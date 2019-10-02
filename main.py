@@ -43,6 +43,9 @@ if __name__ == "__main__":
     print('analysis shape is {0}\n'.format(analysis.shape))
     
 
+
+    
+    
     for b in range(len(s.trajectors)):
         for i in range(0, end+1, moveStep):
             intervalTrajectory = s.trajectors[b, i:(i+window), :]
@@ -51,16 +54,6 @@ if __name__ == "__main__":
             intervalDensity = averageDensity(intervalDensity,window)
             analysis[b, int( (i+(moveStep-1)) / moveStep )] = intervalDensity
             # print(i, ' : ', int( (i+(moveStep-1)) / moveStep))
-    
-    '''
-    for b in range(len(s.trajectors)):
-        for i in range(0, end+1, interval):
-            intervalTrajectory = s.trajectors[b, i:(i+interval), :]
-            intervalDensity = generateDensity(intervalTrajectory)
-            intervalDensity = intervalDensity/interval
-            intervalDensity = averageDensity(intervalDensity,interval)
-            analysis[b, int( (i+(interval-1)) / interval )] = intervalDensity
-    #'''
     
     
     mae = np.zeros((batchSize,intervalNum-1))
@@ -76,12 +69,15 @@ if __name__ == "__main__":
             print('     ', abs(mae1))
             mae[b,i] = mae1
             # delta_mae[b,i] = delta
-            
+    
+    '''      
     # print(delta_mae.shape)
     print(mae.shape)
     
     np.save('data/mae.npy', mae)
     # np.save('data/delta_mae.npy', delta_mae)
+
+    #'''
     
     
     

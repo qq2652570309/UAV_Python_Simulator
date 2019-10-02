@@ -36,7 +36,7 @@ class Simulator:
             start_time=50
 
             # time iteration
-            for currentTime in range(self.time):
+            for currentTime in range(self.time+50):
                 
                 startPositions = []
                 if currentTime < 50:

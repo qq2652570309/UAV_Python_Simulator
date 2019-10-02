@@ -90,7 +90,7 @@ for index in range(n):
     
 
 
-plt.savefig("img/random10.png")
+plt.savefig("img/window10.png")
 
 
 

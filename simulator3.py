@@ -9,7 +9,7 @@ import numpy as np
 from Area import Area
 
 
-class Simulator1:
+class Simulator3:
     def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100):
         self.batch = batch
         self.map_size = mapSize
@@ -108,7 +108,7 @@ class Simulator1:
                             trajectors[t2,endRow,r] += 1
                             remainingTime -= len(r)
                             self.totalFlyingTime += len(r)
-                            
+
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))

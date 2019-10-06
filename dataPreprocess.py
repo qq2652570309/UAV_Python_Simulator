@@ -1,27 +1,36 @@
 import numpy as np
 from simulator import Simulator
+from simulator1 import Simulator1
 import logging
 import time
 import os
 
 class Preprocess:
 
-    def __init__(self, groundTruth=None, trainingSets=None):
-        if groundTruth is None:
+    def __init__(self, label=None, pfeature=None, rfeature=None):
+        if label is None:
             print("ground truth is none")
         else:
-            self.gtr = groundTruth
-        if trainingSets is None:
-            print("training set is none")
+            self.gtr = label
+
+        if pfeature is None:
+            print("pnet featuret is none")
         else:
-            self.tsr = trainingSets
+            self.pfeature = pfeature
+
+        if rfeature is None:
+            print("rnet feature is none")
+        else:
+            self.rfeature = rfeature
         
         logging.info('')
         logging.info('---Initial Shape---')
-        logging.info('  initial feature: {0}'.format(self.tsr.shape))
+        logging.info('  initial pnet feature: {0}'.format(self.pfeature.shape))
+        logging.info('  initial rnet feature: {0}'.format(self.rfeature.shape))
         logging.info('  initial label: {0}\n'.format(self.gtr.shape))
         print('---Initial Shape---')
-        print('initial feature', self.tsr.shape)
+        print('initial pnet feature', self.pfeature.shape)
+        print('initial rnet feature', self.rfeature.shape)
         print('initial label: ', self.gtr.shape)
         print('')
 
@@ -162,6 +171,10 @@ class Preprocess:
                 print(' {0} is {1}'.format(name, data.shape))
                 np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
                 os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
+            elif 'probability' in name:
+                print(' {0} is {1}'.format(name, data.shape))
+                np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
+                os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
             else:
                 print('No such feature! \n')
         elif 'label' in name:
@@ -185,16 +198,19 @@ class Preprocess:
         logging.info('  process labels:')
         trajectory = np.copy(self.gtr)
         # densityLabel = (batch, 100, 100) in last 10 timesteps
-        densityLabel = self.intervalDensity(trajectory, 60, 70)
+        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-10, trajectory.shape[1])
         self.save(densityLabel, name='label_density', direcoty=direcoty)
+
         logging.info('')
-        logging.info('  process feature:')
+        logging.info('  process Pnet feature:')
         # desntiyFeature = (batch, 100, 100) in first 10 timesteps
         desntiyFeature = self.intervalDensity(trajectory, 0, 10)
         self.save(desntiyFeature, name='data_density', direcoty=direcoty)
         # feature_task = (batch, 60, 15, 5)
-        self.save(self.tsr, name='data_tasks', direcoty=direcoty)
-        
+        self.save(self.pfeature, name='data_tasks', direcoty=direcoty)
+        logging.info('')
+        logging.info('  process Rnet feature:')
+        self.save(self.rfeature, name='data_probability_pattern', direcoty=direcoty)
         print('finish saving')
 
 
@@ -204,32 +220,19 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    '''
-    s = Simulator(batch=1, taskNum=15, row=100, column=100, time=70)
+    
+    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, taskTime=100, tastEnd=50)
     startTimeTotal = time.time()
     s.generate()
-    
-    
-    logging.info('Finished')
-    logging.info('finish generate, cost {0} \n'.format(time.time() - startTimeTotal))
+    logging.info('Simulater Finished')
+    logging.info('  generation costs {0} \n'.format(time.time() - startTimeTotal))
     print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
     logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
     print('total tasks number: ', s.totalUavNum)
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
-    print(s.trainingSets.shape)
-    print(s.groundTruths.shape)
-    '''
-    
 
-    
-    # p = Preprocess(trainingSets=s.trainingSets, groundTruth=s.groundTruths)
+    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeatrue)
+    p.featureLabel(direcoty='test')
 
-    trs = np.random.randint(100, size=(1, 60, 15, 5))
-    gtr = np.random.randint(100, size=(1, 70, 100, 100))
-    p = Preprocess(trainingSets=trs, groundTruth=gtr)
-    
-    p.featureLabel(direcoty='pnet_with_time')
-    '''
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')
-    #'''

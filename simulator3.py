@@ -10,7 +10,7 @@ from Area import Area
 
 
 class Simulator1:
-    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50):
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -70,6 +70,7 @@ class Simulator1:
                             # self.tasks[batch_idx,time_idx,task_idx,4] = currentTime
 
                         remainingTime = self.time - currentTime
+                        
                         
                         if remainingTime >= abs(startCol-endCol)+1 :
                             # enough time for horizontal

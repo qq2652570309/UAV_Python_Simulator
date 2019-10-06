@@ -220,8 +220,8 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    
-    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, taskTime=100, tastEnd=50)
+
+    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
     startTimeTotal = time.time()
     s.generate()
     logging.info('Simulater Finished')

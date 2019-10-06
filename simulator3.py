@@ -71,41 +71,44 @@ class Simulator1:
 
                         remainingTime = self.time - currentTime
                         
-                        
-                        if remainingTime >= abs(startCol-endCol)+1 :
-                            # enough time for horizontal
-                            if startCol < endCol :
-                                r =  np.arange(startCol, endCol+1)
+                        # routing part
+                        if remainingTime >= abs(startRow-endRow)+1 :
+                            # enough time for vertical
+                            if startRow < endRow:
+                                c = np.arange(startRow, endRow+1)
                             else:
-                                r = np.arange(endCol, startCol+1)[::-1]
+                                c = np.arange(endRow, startRow+1)[::-1]
                         else:
-                            # not enough time for horizontal
-                            if startCol < endCol:
-                                r = np.arange(startCol, startCol+remainingTime)
+                            # not enough time for vertical
+                            if startRow < endRow:
+                                c = np.arange(startRow, startRow+remainingTime)
                             else:
-                                r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
-                        t1 = np.arange(currentTime, currentTime+len(r))
-                        trajectors[t1,startRow,r] += 1
-                        remainingTime -= len(r)
-                        self.totalFlyingTime += len(r)
+                                c = np.arange(startRow-remainingTime+1, startRow+1)[::-1]
+
+
+                        t1 = np.arange(currentTime, currentTime+len(c))
+                        trajectors[t1,c,startCol] += 1
+                        remainingTime -= len(c)
+                        self.totalFlyingTime += len(c)
 
                         if remainingTime > 0 :
-                            # exists time for vertical
-                            if remainingTime >= abs(startRow-endRow) :
-                                # enough time for vertical
-                                if startRow < endRow:
-                                    c = np.arange(startRow+1, endRow+1)
+                            if remainingTime >= abs(startCol-endCol) :
+                                # enough time for horizontal
+                                if startCol < endCol :
+                                    r =  np.arange(startCol+1, endCol+1)
                                 else:
-                                    c = np.arange(endRow, startRow)[::-1]
+                                    r = np.arange(endCol, startCol)[::-1]
                             else:
-                                # not enough time for vertical
-                                if startRow < endRow:
-                                    c = np.arange(startRow+1, startRow+remainingTime+1)
+                                # not enough time for horizontal
+                                if startCol < endCol:
+                                    r = np.arange(startCol+1, startCol+remainingTime+1)
                                 else:
-                                    c = np.arange(startRow-remainingTime, startRow)[::-1]
-                            t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                            trajectors[t2, c, endCol] += 1
-                            self.totalFlyingTime += len(c)
+                                    r = np.arange(startCol-remainingTime, startCol)[::-1]
+                            t2 = np.arange(t1[-1]+1, t1[-1] + len(r)+1)
+                            trajectors[t2,endRow,r] += 1
+                            remainingTime -= len(r)
+                            self.totalFlyingTime += len(r)
+                            
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))

@@ -221,13 +221,10 @@ class Preprocess:
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
-    logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
-    logging.info('Started')
-
 
     # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
-    # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
-    s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
+    s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
+    # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
     startTimeTotal = time.time()
     s.generate()

@@ -12,17 +12,19 @@ from Area import Area
 
 
 class Simulator2:
-    def __init__(self, batch = 1, time=200, mapSize=100,  taskNum=15):
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
         self.task_num = taskNum
+        self.trajectoryTime = trajectoryTime
+        self.taskTime = taskTime
         self.area = Area(0,1)
         # In channel, 1st and 2nd are (x, y) launching location, 
         # 3rd and 4th are (x, y) destination location
         # 5th is time
-        self.tasks = np.zeros(shape=(batch, 100, taskNum, 5), dtype=int)
-        self.trajectors = np.zeros(shape=(batch, 110, mapSize, mapSize), dtype=int)
+        self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
+        self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         self.Rfeature = np.zeros(shape=(self.batch, mapSize, mapSize, 2), dtype=np.float32)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
@@ -42,10 +44,10 @@ class Simulator2:
 
             # time iteration
             for currentTime in range(self.time):
-                if currentTime >= start_time + 110:
-                    break;
+                if currentTime >= start_time + self.trajectoryTime:
+                    break
                 
-                if currentTime == 25:
+                if currentTime == start_time + 10 + 25:
                     self.area.updateLaunchingRate()
                 
                 # task iteration
@@ -57,7 +59,7 @@ class Simulator2:
                     succ = np.random.uniform(0,1) <= launchingRate
                     
                     # if there is a launching UAV
-                    if currentTime >= start_time + 10 and currentTime < start_time + 110:
+                    if currentTime >= start_time + 10 and currentTime < start_time + self.trajectoryTime:
                         time_idx = currentTime - (start_time + 10)
                         self.tasks[batch_idx,time_idx,task_idx,4] = currentTime
                     if succ:
@@ -65,7 +67,7 @@ class Simulator2:
                         endRow, endCol = self.area.getDestination()
 
                         # add info into channel
-                        if currentTime >= start_time + 10 and currentTime < start_time + 110:
+                        if currentTime >= start_time + 10 and currentTime < start_time + self.trajectoryTime:
                             self.tasks[batch_idx,time_idx,task_idx,0] = startRow
                             self.tasks[batch_idx,time_idx,task_idx,1] = startCol
                             self.tasks[batch_idx,time_idx,task_idx,2] = endRow
@@ -115,7 +117,7 @@ class Simulator2:
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
-            self.trajectors[batch_idx] = trajectors[start_time:start_time+110]
+            self.trajectors[batch_idx] = trajectors[start_time:start_time + self.trajectoryTime]
 
 
     def drawPatten(self, batch_idx):

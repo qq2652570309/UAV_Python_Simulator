@@ -222,8 +222,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
 
-    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
-    # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
+    # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
+    s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
     startTimeTotal = time.time()
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
     p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
-    p.featureLabel(direcoty='noTaskAfter50')
+    p.featureLabel(direcoty='unfixedProbability')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

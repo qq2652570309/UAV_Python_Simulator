@@ -121,8 +121,9 @@ class Preprocess:
 
     # nomalize groud truth as the last second
     def batchNormalize(self, gtr):
-        for i in range(len(gtr)):
-            gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
+        # for i in range(len(gtr)):
+        #     gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
+        gtr = (gtr - np.min(gtr)) / (np.max(gtr) - np.min(gtr))
         logging.info('      after batchNormalize')
         logging.info('          min: {0}'.format(np.min(gtr)))
         logging.info('          max: {0}'.format(np.max(gtr)))
@@ -214,7 +215,8 @@ class Preprocess:
         self.save(self.pfeature, name='data_tasks', direcoty=direcoty)
         logging.info('')
         logging.info('  process Rnet feature:')
-        self.save(self.rfeature, name='data_probability_pattern', direcoty=direcoty)
+        self.save(self.rfeature, name='training_data_trajectory', direcoty=direcoty)
+        self.save(densityLabel, name='training_label_density', direcoty=direcoty)
         print('finish saving')
 
 
@@ -222,7 +224,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
 
-    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
+    s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
     # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
@@ -236,7 +239,7 @@ if __name__ == "__main__":
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
     p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
-    p.featureLabel(direcoty='noTaskAfter50')
+    p.featureLabel(direcoty='NoNormalize')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

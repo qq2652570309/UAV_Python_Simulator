@@ -47,7 +47,7 @@ class Simulator2:
                 if currentTime >= start_time + self.trajectoryTime:
                     break
                 
-                if currentTime == start_time + 10 + 25:
+                if currentTime == start_time + 10 + 10:
                     self.area.updateLaunchingRate()
                 
                 # task iteration

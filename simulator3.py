@@ -35,7 +35,7 @@ class Simulator3:
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            self.drawPatten_horizontal_vertical_horizontal(batch_idx)
+            self.drawPatten_vertical_horizontal(batch_idx)
             start_time = random.choice(range(0, 80))
             
             # time iteration
@@ -68,7 +68,7 @@ class Simulator3:
                             self.tasks[batch_idx,time_idx,task_idx,2] = endRow
                             self.tasks[batch_idx,time_idx,task_idx,3] = endCol
 
-                        trajectors = self.horizontal_vertical_horizontal(startRow=startRow, startCol=startCol, 
+                        trajectors = self.vertical_horizontal(startRow=startRow, startCol=startCol, 
                                                             endRow=endRow, endCol=endCol, 
                                                             currentTime=currentTime, trajectors=trajectors)
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
@@ -154,7 +154,7 @@ class Simulator3:
             self.totalFlyingTime += len(c)
         return trajectors
 
-    def horizontal_vertical_horizontal(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
+    def zigzag(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         midCol = int(round((startCol + endCol) / 2))
         midRow1 = int(startRow)
         midRow2 = int(endRow)
@@ -258,7 +258,7 @@ class Simulator3:
                     r = np.arange(endCol, startCol)[::-1]
                 self.Rfeature[batch_idx, endRow, r] = 1
 
-    def drawPatten_horizontal_vertical_horizontal(self, batch_idx):
+    def drawPatten_zigzag(self, batch_idx):
         startPositions = self.area.getLaunchPoint()
         for startRow, startCol, _ in startPositions:
             for endRow, endCol in self.area.getDestination(allPoints=True):

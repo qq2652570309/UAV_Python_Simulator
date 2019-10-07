@@ -20,7 +20,7 @@ class Simulator1:
         self.area = Area(0,1)
         # In channel, 1st and 2nd are (x, y) launching location, 
         # 3rd and 4th are (x, y) destination location
-        self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
+        self.tasks = np.zeros(shape=(batch, trajectoryTime-10, taskNum, 5), dtype=int)
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         self.totalFlyingTime = 0
@@ -46,15 +46,17 @@ class Simulator1:
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
                 for task_idx, task_val in zip(range(len(startPositions)), startPositions):
                     startRow, startCol, launchingRate = task_val
-                    if currentTime >= start_time + 10 and currentTime < start_time + 10 + self.taskTime:
-                        time_idx = currentTime - (start_time + 10)
-                        self.tasks[batch_idx,time_idx,task_idx,4] = currentTime
                     startRow = int(startRow)
                     startCol = int(startCol)
                     succ = np.random.uniform(0,1) <= launchingRate
+
+                    # if there is a launching UAV
+                    if currentTime >= start_time + 10 and currentTime < start_time + self.trajectoryTime:
+                        time_idx = currentTime - (start_time + 10)
+                        self.tasks[batch_idx,time_idx,task_idx,4] = currentTime
                     
                     # if there is a launching UAV
-                    if succ:
+                    if succ and currentTime < start_time + 10 + self.taskTime:
                         self.totalUavNum += 1
                         endRow, endCol = self.area.getDestination()
                         self.Rfeature[batch_idx, startRow, startCol, 0] = launchingRate

@@ -10,19 +10,23 @@ import logging
 import numpy as np
 from Area import Area
 
+random.seed(0)
+np.random.seed(0)
 
 class Simulator:
-    def __init__(self, batch = 1, time=180, mapSize=100,  taskNum=15):
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
         self.task_num = taskNum
+        self.trajectoryTime = trajectoryTime
+        self.taskTime = taskTime
         self.area = Area(0,1)
         # In channel, 1st and 2nd are (x, y) launching location, 
         # 3rd and 4th are (x, y) destination location
-        # 5th is time
-        self.tasks = np.zeros(shape=(batch, 60, taskNum, 5), dtype=int)
-        self.trajectors = np.zeros(shape=(batch, 70, mapSize, mapSize), dtype=int)
+        self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
+        self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
+        self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
         if os.path.exists('./log.txt'):
@@ -35,6 +39,7 @@ class Simulator:
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
+            self.drawPatten(batch_idx)
             start_time = random.choice(range(0, 80))
 
             # time iteration
@@ -53,6 +58,8 @@ class Simulator:
                     if succ:
                         self.totalUavNum += 1
                         endRow, endCol = self.area.getDestination()
+                        self.Rfeature[batch_idx, startRow, startCol, 0] = launchingRate
+                        self.Rfeature[batch_idx, endRow, endCol, 0] = 0.3
 
                         # add info into channel
                         if currentTime >= start_time + 10 and currentTime < start_time + 70:
@@ -104,6 +111,26 @@ class Simulator:
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
             self.trajectors[batch_idx] = trajectors[start_time:start_time+70]
+        
+        
+    def drawPatten(self, batch_idx):
+        startPositions = self.area.getLaunchPoint()
+        for startRow, startCol, _ in startPositions:
+            for endRow, endCol in self.area.getDestination(allPoints=True):
+                startRow, startCol = int(startRow), int(startCol)
+                endRow, endCol = int(endRow), int(endCol)
+                if startCol < endCol :
+                    r =  np.arange(startCol, endCol+1)
+                else:
+                    r = np.arange(endCol, startCol+1)[::-1]
+                self.Rfeature[batch_idx, startRow, r, 1] = 1
+                if startRow < endRow:
+                    c = np.arange(startRow+1, endRow+1)
+                else:
+                    c = np.arange(endRow, startRow)[::-1]
+                self.Rfeature[batch_idx, c, endCol, 1] = 1
+                
+                    
 
 if __name__ == "__main__":
     s = Simulator(batch=1, mapSize=100, time=120)

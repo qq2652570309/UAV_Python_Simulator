@@ -35,7 +35,7 @@ class Simulator3:
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            self.drawPatten(batch_idx)
+            self.drawPatten_vertical_horizontal(batch_idx)
             start_time = random.choice(range(0, 80))
             
             # time iteration
@@ -116,7 +116,6 @@ class Simulator3:
             self.totalFlyingTime += len(r)
         return trajectors
 
-
     def horizontal_vertical(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         remainingTime = self.time - currentTime  
         if remainingTime >= abs(startCol-endCol)+1 :
@@ -155,7 +154,7 @@ class Simulator3:
             self.totalFlyingTime += len(c)
         return trajectors
 
-    def drawPatten(self, batch_idx):
+    def drawPatten_horizontal_vertical(self, batch_idx):
         startPositions = self.area.getLaunchPoint()
         for startRow, startCol, _ in startPositions:
             for endRow, endCol in self.area.getDestination(allPoints=True):
@@ -172,6 +171,24 @@ class Simulator3:
                     c = np.arange(endRow, startRow)[::-1]
                 self.Rfeature[batch_idx, c, endCol, 1] = 1
 
+    def drawPatten_vertical_horizontal(self, batch_idx):
+        startPositions = self.area.getLaunchPoint()
+        for startRow, startCol, _ in startPositions:
+            for endRow, endCol in self.area.getDestination(allPoints=True):
+                startRow, startCol = int(startRow), int(startCol)
+                endRow, endCol = int(endRow), int(endCol)
+                if startRow < endRow:
+                    c = np.arange(startRow, endRow+1)
+                else:
+                    c = np.arange(endRow, startRow+1)[::-1]
+                self.Rfeature[batch_idx, c, startCol] = 1
+                if startCol < endCol :
+                    r =  np.arange(startCol+1, endCol+1)
+                else:
+                    r = np.arange(endCol, startCol)[::-1]
+                self.Rfeature[batch_idx, endRow, r] = 1
+
+
 if __name__ == "__main__":
-    s = Simulator3(batch=1, mapSize=100)
+    s = Simulator3(batch=100, mapSize=100)
     s.generate()

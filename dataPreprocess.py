@@ -227,8 +227,8 @@ if __name__ == "__main__":
 
     # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
     # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
-    # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
-    s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
+    s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
+    # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
     startTimeTotal = time.time()
     s.generate()
     logging.info('Simulater Finished')

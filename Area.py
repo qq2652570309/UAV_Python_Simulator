@@ -4,6 +4,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+random.seed(0)
+np.random.seed(0)
+
 blockArea = [
     [15, 5],
     [16, 4],

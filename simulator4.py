@@ -11,7 +11,7 @@ import numpy as np
 from Area import Area
 
 
-class Simulator:
+class Simulator4:
     def __init__(self, batch = 1, time=200, mapSize=100,  taskNum=15):
         self.batch = batch
         self.map_size = mapSize
@@ -142,45 +142,6 @@ class Simulator:
                             trajectors[t3,endRow,r2] += 1
                             remainingTime -= len(r2)
                             self.totalFlyingTime += len(r2)
-                        
-                        
-                        
-                        
-                        
-                        # if remainingTime >= abs(startCol-endCol)+1 :
-                        #     # enough time for horizontal
-                        #     if startCol < endCol :
-                        #         r =  np.arange(startCol, endCol+1)
-                        #     else:
-                        #         r = np.arange(endCol, startCol+1)[::-1]
-                        # else:
-                        #     # not enough time for horizontal
-                        #     if startCol < endCol:
-                        #         r = np.arange(startCol, startCol+remainingTime)
-                        #     else:
-                        #         r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
-                        # t1 = np.arange(currentTime, currentTime+len(r))
-                        # trajectors[t1,startRow,r] += 1
-                        # remainingTime -= len(r)
-                        # self.totalFlyingTime += len(r)
-
-                        # if remainingTime > 0 :
-                        #     # exists time for vertical
-                        #     if remainingTime >= abs(startRow-endRow) :
-                        #         # enough time for vertical
-                        #         if startRow < endRow:
-                        #             c = np.arange(startRow+1, endRow+1)
-                        #         else:
-                        #             c = np.arange(endRow, startRow)[::-1]
-                        #     else:
-                        #         # not enough time for vertical
-                        #         if startRow < endRow:
-                        #             c = np.arange(startRow+1, startRow+remainingTime+1)
-                        #         else:
-                        #             c = np.arange(startRow-remainingTime, startRow)[::-1]
-                        #     t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                        #     trajectors[t2, c, endCol] += 1
-                        #     self.totalFlyingTime += len(c)
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
@@ -241,7 +202,7 @@ if __name__ == "__main__":
     logging.info('Started')
     startTimeIter = time.time()
     
-    s = Simulator(batch=1, mapSize=100, time=200)
+    s = Simulator4(batch=1, mapSize=100, time=200)
     # s.generate()
     # print('UAV Avg Flying Time: ', s.totalFlyingTime/s.totalUavNum)
 

@@ -1,9 +1,13 @@
 import numpy as np
-from simulator import Simulator
-from simulator1 import Simulator1
 import logging
 import time
 import os
+
+from simulator import Simulator
+from simulator1 import Simulator1
+from simulator2 import Simulator2
+from simulator3 import Simulator3
+from simulator4 import Simulator4
 
 class Preprocess:
 
@@ -221,7 +225,10 @@ if __name__ == "__main__":
     logging.info('Started')
 
 
-    s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
+    # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
+    # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
+    # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
+    s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
     startTimeTotal = time.time()
     s.generate()
     logging.info('Simulater Finished')
@@ -231,8 +238,8 @@ if __name__ == "__main__":
     print('total tasks number: ', s.totalUavNum)
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
-    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeatrue)
-    p.featureLabel(direcoty='test')
+    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
+    # p.featureLabel(direcoty='test')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

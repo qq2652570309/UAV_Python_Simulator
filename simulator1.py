@@ -22,7 +22,7 @@ class Simulator1:
         # 3rd and 4th are (x, y) destination location
         self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
-        self.Rfeatrue = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
+        self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
         if os.path.exists('./log.txt'):
@@ -57,8 +57,8 @@ class Simulator1:
                     if succ:
                         self.totalUavNum += 1
                         endRow, endCol = self.area.getDestination()
-                        self.Rfeatrue[batch_idx, startRow, startCol, 0] = launchingRate
-                        self.Rfeatrue[batch_idx, endRow, endCol, 0] = 0.3
+                        self.Rfeature[batch_idx, startRow, startCol, 0] = launchingRate
+                        self.Rfeature[batch_idx, endRow, endCol, 0] = 0.3
 
                         # add info into channel
                         if currentTime >= start_time + 10 and currentTime < start_time + 10 + self.taskTime:
@@ -120,12 +120,12 @@ class Simulator1:
                     r =  np.arange(startCol, endCol+1)
                 else:
                     r = np.arange(endCol, startCol+1)[::-1]
-                self.Rfeatrue[batch_idx, startRow, r, 1] = 1
+                self.Rfeature[batch_idx, startRow, r, 1] = 1
                 if startRow < endRow:
                     c = np.arange(startRow+1, endRow+1)
                 else:
                     c = np.arange(endRow, startRow)[::-1]
-                self.Rfeatrue[batch_idx, c, endCol, 1] = 1
+                self.Rfeature[batch_idx, c, endCol, 1] = 1
 
 if __name__ == "__main__":
     s = Simulator1(batch=1, mapSize=100)

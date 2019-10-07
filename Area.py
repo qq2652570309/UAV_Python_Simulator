@@ -37,6 +37,16 @@ class Area:
         self.la = la
         self.da = da
 
+    def updateLaunchingRate(self):
+        la = self.la
+        possiblity = 0
+        for i in range(len(la)):
+            if i % 9 == 0:
+                possiblity = np.random.uniform()
+            la[i][-1] = possiblity
+            la[i] = np.round(la[i], decimals=2)
+        self.la = la
+
     def getLaunchPoint(self, n=None):
         result = self.la
         if n != None:
@@ -97,14 +107,28 @@ class Area:
             for p in area:
                 A[int(p[0]), int(p[1])] = 1
             ax.imshow(A)
+            ax.imshow(x[i-1], cmap=plt.cm.gnuplot)
             ax.set_title(title)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(True)
         if save == True:
             plt.savefig("img/AreaMap.png")
+            
+    def imageDiffColor(self):
+        positions = np.zeros((100,100))
+        for l in self.la:
+            positions[l[0],l[1]] = 0.2
+        
+        # self.positions[index, sp[0], sp[1]] = 0.2
+        # self.positions[index, ep[0], ep[1]] = 0.5
+
 
 if __name__ == "__main__":
     a = Area(0, 1)
     print(a.getLaunchPoint())
-    print(a.getDestination(allPoints=True))
-    a.image(100,save=True)
+    a.updateLaunchingRate()
+    print(a.getLaunchPoint())
+    a.updateLaunchingRate()
+    print(a.getLaunchPoint())
+    # print(a.getDestination(allPoints=True))
+    # a.image(100,save=True)

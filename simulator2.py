@@ -11,7 +11,7 @@ import numpy as np
 from Area import Area
 
 
-class Simulator:
+class Simulator2:
     def __init__(self, batch = 1, time=200, mapSize=100,  taskNum=15):
         self.batch = batch
         self.map_size = mapSize
@@ -38,6 +38,7 @@ class Simulator:
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
             start_time = random.choice(range(0, 80))
+            self.drawPatten(batch_idx)
 
             # time iteration
             for currentTime in range(self.time):
@@ -137,8 +138,6 @@ class Simulator:
 
 
 if __name__ == "__main__":
-    s = Simulator(batch=1, mapSize=100, time=200)
-    
     logger = logging.getLogger()
     logger.disabled = True
 
@@ -147,6 +146,7 @@ if __name__ == "__main__":
     logging.info('Started')
     startTimeIter = time.time()
     
+    s = Simulator2(batch=1, mapSize=100, time=200)
     # s.generate()
     # print('UAV Avg Flying Time: ', s.totalFlyingTime/s.totalUavNum)
 

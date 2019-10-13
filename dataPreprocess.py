@@ -8,6 +8,7 @@ from simulator1 import Simulator1
 from simulator2 import Simulator2
 from simulator3 import Simulator3
 from simulator4 import Simulator4
+from simulator5 import Simulator5
 
 class Preprocess:
 
@@ -224,11 +225,12 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
 
-    s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    # s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
     # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
+    s = Simulator5(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
     s.generate()
     logging.info('Simulater Finished')

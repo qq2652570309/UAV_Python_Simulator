@@ -111,7 +111,7 @@ class Area:
                 A[int(p[0]), int(p[1])] = 1
             ax.imshow(A)
             ax.imshow(x[i-1], cmap=plt.cm.gnuplot)
-            ax.set_title(title)
+            # ax.set_title(title)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(True)
         if save == True:
@@ -126,12 +126,45 @@ class Area:
         # self.positions[index, ep[0], ep[1]] = 0.5
 
 
+    def saveImage(self, size, name="test"):
+        A = np.zeros((size,size))
+        startPositions = self.getLaunchPoint()
+        endPositions = self.getDestination(allPoints=True)
+
+        for startRow, startCol, _ in startPositions:
+            startRow, startCol = int(startRow), int(startCol)
+            A[startRow, startCol] = 1 # red is 1
+
+        for endRow, endCol in endPositions:
+            endRow, endCol = int(endRow), int(endCol)
+            A[endRow, endCol] = 2 # yellow is 2
+
+        plt.gray()
+        frame1 = plt.gca()
+        plt.imshow(A, cmap=plt.cm.gnuplot)
+        # plt.colorbar()
+        frame1.axes.get_xaxis().set_visible(False)
+        frame1.axes.get_yaxis().set_visible(False)
+
+        plt.savefig("img/{0}.png".format(name))
+
+
 if __name__ == "__main__":
     a = Area(0, 1)
-    print(a.getLaunchPoint())
-    a.updateLaunchingRate()
-    print(a.getLaunchPoint())
-    a.updateLaunchingRate()
-    print(a.getLaunchPoint())
+    # print(a.getLaunchPoint())
+    # a.updateLaunchingRate()
+    # print(a.getLaunchPoint())
+    # a.updateLaunchingRate()
+    # print(a.getLaunchPoint())
     # print(a.getDestination(allPoints=True))
     # a.image(100,save=True)
+    a.refresh(mapSize=100, areaSize=3, num=10)
+    a.saveImage(size=100, name="area1")
+    a.refresh(mapSize=100, areaSize=3, num=10)
+    a.saveImage(size=100, name="area2")
+    a.refresh(mapSize=100, areaSize=3, num=10)
+    a.saveImage(size=100, name="area3")
+    a.refresh(mapSize=100, areaSize=3, num=10)
+    a.saveImage(size=100, name="area4")
+    a.refresh(mapSize=100, areaSize=3, num=10)
+    a.saveImage(size=100, name="area5")

@@ -111,7 +111,7 @@ class Preprocess:
         self.tsr = nf
         self.gtr = nl
 
-    def compressTime1(self, interval=15):
+    def standardDeviation(self, interval=15):
         # lb: (n, 60, 100, 100) --> (n, 100, 100)
         # nf: (n, 60, 100, 100) --> (n, 30, 100, 100)
         batchNum, intervalNum, row, col = self.gtr.shape

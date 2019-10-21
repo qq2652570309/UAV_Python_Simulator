@@ -29,7 +29,7 @@ class Simulator3:
             os.remove('log.txt')
     
     def generate(self):
-
+        
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)

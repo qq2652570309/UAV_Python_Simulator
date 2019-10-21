@@ -209,17 +209,17 @@ class Simulator5:
             r =  np.arange(startCol, endCol+1)
         else:
             r = np.arange(endCol, startCol+1)[::-1]
-        self.trajectorsSlice[i, startRow, r, 0] += 1
+        self.trajectorsSlice[i, startRow, r, 0] = 1
 
         if startRow < endRow:
             c = np.arange(startRow+1, endRow+1)
         else:
             c = np.arange(endRow, startRow)[::-1]
-        self.trajectorsSlice[i, c, endCol, 0] += 1
+        self.trajectorsSlice[i, c, endCol, 0] = 1
 
 
     def save(self, direcoty='test'):
-        s.trajectorsSlice = (s.trajectorsSlice - np.min(s.trajectorsSlice)) / (np.max(s.trajectorsSlice) - np.min(s.trajectorsSlice))
+        # s.trajectorsSlice[s.trajectorsSlice>=1] = 1
 
         if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
             os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
@@ -234,7 +234,12 @@ class Simulator5:
         # os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density"), 0o777)
 
 if __name__ == "__main__":
-    s = Simulator5(batch=3000, mapSize=100)
+    s = Simulator5(batch=1, mapSize=100)
     s.generate()
+    t = s.trajectorsSlice
+    a = t[t>0]
+    b = a[a<1]
+    print(np.sum(b))
+    # print(np.sum(t[t!=0 and t!=1]))
 
-    s.save("feature_extraction_data")
+    # s.save("feature_extraction_data")

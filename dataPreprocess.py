@@ -111,6 +111,20 @@ class Preprocess:
         self.tsr = nf
         self.gtr = nl
 
+    def compressTime1(self, interval=15):
+        # lb: (n, 60, 100, 100) --> (n, 100, 100)
+        # nf: (n, 60, 100, 100) --> (n, 30, 100, 100)
+        batchNum, intervalNum, row, col = self.gtr.shape
+        intervalNum -= 2*interval
+        lb = np.zeros((batchNum, row, col))
+        nf = np.zeros((batchNum, intervalNum, row, col))
+        for b in range(batchNum):
+            lb[b] = np.sum(self.gtr[b, intervalNum+interval:intervalNum+interval*2], axis=0) 
+            for i in range(intervalNum):
+                print(i, i+interval)
+                nf[b, i] = np.sum(self.gtr[b, i:i+interval], axis=0)
+
+
     # print number of non-zeros and zeros
     def computeWeights(self, gtr):
         one = gtr[gtr>0].size
@@ -166,8 +180,6 @@ class Preprocess:
         if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
             os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
             os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
-        if 'lkjsdf' in name:
-            return
         if 'data' in name:
             if 'density' in name:
                 print(' {0} is {1}'.format(name, data.shape))

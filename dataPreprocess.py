@@ -5,14 +5,12 @@ import os
 
 from simulator import Simulator
 from simulator1 import Simulator1
-from simulator2 import Simulator2
-from simulator3 import Simulator3
-from simulator4 import Simulator4
-from simulator5 import Simulator5
+# from simulator3 import Simulator3
+# from simulator5 import Simulator5
 
 class Preprocess:
 
-    def __init__(self, label=None, pfeature=None, rfeature=None):
+    def __init__(self, label=None, pfeature=None, rfeature=None, taskMap=None):
         if label is None:
             print("ground truth is none")
         else:
@@ -27,16 +25,23 @@ class Preprocess:
             print("rnet feature is none")
         else:
             self.rfeature = rfeature
+
+        if taskMap is None:
+            print("taskMap is none")
+        else:
+            self.taskMap = taskMap
         
         logging.info('')
         logging.info('---Initial Shape---')
         logging.info('  initial pnet feature: {0}'.format(self.pfeature.shape))
         logging.info('  initial rnet feature: {0}'.format(self.rfeature.shape))
         logging.info('  initial label: {0}\n'.format(self.gtr.shape))
+        logging.info('  initial taskMap: {0}\n'.format(self.taskMap.shape))
         print('---Initial Shape---')
         print('initial pnet feature', self.pfeature.shape)
         print('initial rnet feature', self.rfeature.shape)
         print('initial label: ', self.gtr.shape)
+        print('  initial taskMap: {0}\n'.format(self.taskMap.shape))
         print('')
 
     # save data from start to end
@@ -189,18 +194,22 @@ class Preprocess:
                 print(' {0} is {1}'.format(name, data.shape))
                 np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
                 os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
-            elif 'probability' in name:
+            elif 'trajectory' in name:
                 print(' {0} is {1}'.format(name, data.shape))
                 np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
                 os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
             else:
-                print('No such feature! \n')
+                print(' No such {0} feature! \n'.format(name))
         elif 'label' in name:
             print(' {0} is {1}'.format(name, data.shape))
             np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
             os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
+        elif 'taskMap' in name:
+            print(' {0} is {1}'.format(name, data.shape))
+            np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), data)
+            os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name), 0o777)
         else:
-            print('No such data! \n')
+            print(' No such {0} data! \n'.format(name))
         print(' {0} save complete\n'.format(name))
 
 
@@ -216,7 +225,7 @@ class Preprocess:
         logging.info('  process labels:')
         trajectory = np.copy(self.gtr)
         # densityLabel = (batch, 100, 100) in last 10 timesteps
-        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-10, trajectory.shape[1])
+        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-15, trajectory.shape[1])
         self.save(densityLabel, name='label_density', direcoty=direcoty)
 
         logging.info('')
@@ -230,6 +239,9 @@ class Preprocess:
         logging.info('  process Rnet feature:')
         self.save(self.rfeature, name='training_data_trajectory', direcoty=direcoty)
         self.save(densityLabel, name='training_label_density', direcoty=direcoty)
+        logging.info('')
+        logging.info('  process taskMap feature:')
+        self.save(self.taskMap, name="taskMap", direcoty=direcoty)
         print('finish saving')
 
 
@@ -238,11 +250,9 @@ if __name__ == "__main__":
     logger.disabled = False
 
     # s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
-    # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
-    # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
+    s = Simulator1(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
-    # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
-    s = Simulator5(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    # s = Simulator5(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
     s.generate()
     logging.info('Simulater Finished')
@@ -252,8 +262,8 @@ if __name__ == "__main__":
     print('total tasks number: ', s.totalUavNum)
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
-    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
-    p.featureLabel(direcoty='NoNormalize')
+    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature, taskMap=s.taskMap)
+    p.featureLabel(direcoty='main_test')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

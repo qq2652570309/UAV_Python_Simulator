@@ -14,7 +14,7 @@ random.seed(0)
 np.random.seed(0)
 
 class Simulator:
-    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50):
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -40,10 +40,13 @@ class Simulator:
 
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
             self.drawPatten(batch_idx)
-            start_time = random.choice(range(0, 80))
+            start_time = random.choice(range(60, 80))
 
             # time iteration
             for currentTime in range(self.time):
+                
+                # if currentTime == start_time + 30:
+                #     self.area.updateLaunchingRate()
                 
                 # task iteration
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
@@ -62,7 +65,7 @@ class Simulator:
                         self.Rfeature[batch_idx, endRow, endCol, 0] = 0.3
 
                         # add info into channel
-                        if currentTime >= start_time + 10 and currentTime < start_time + 70:
+                        if currentTime >= start_time + 10 and currentTime < start_time + self.trajectoryTime:
                             time_idx = currentTime - (start_time + 10)
                             # print(time_idx, task_idx, currentTime, self.start_time + 10, self.start_time + 70)
                             self.tasks[batch_idx,time_idx,task_idx,0] = startRow
@@ -110,7 +113,7 @@ class Simulator:
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
-            self.trajectors[batch_idx] = trajectors[start_time:start_time+70]
+            self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
         
         
     def drawPatten(self, batch_idx):

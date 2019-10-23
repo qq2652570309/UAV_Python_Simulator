@@ -9,8 +9,12 @@ def bn(a):
     return a
 
 
-prediction = np.load('../../../data/zzhao/uav_regression/prediction.npy')
-label = np.load('../../../data/zzhao/uav_regression/label.npy')
+prediction = np.load('../../../data/zzhao/uav_regression/global_normalization_60s/data_density.npy')
+label = np.load('../../../data/zzhao/uav_regression/global_normalization_60s/label_density.npy')
+'''
+prediction = np.load('../prediction.npy')
+label = np.load('../label.npy')
+'''
 # v1 model data
 # prediction = np.load('tmpdata/evaluate_cnn.npy')
 # label = np.load('tmpdata/y_test.npy')
@@ -18,8 +22,6 @@ label = np.load('../../../data/zzhao/uav_regression/label.npy')
 # label = label[:40]
 
 
-bn(prediction)
-bn(label)
 
 print(prediction.shape)
 print(label.shape)
@@ -42,7 +44,7 @@ plt.xlabel("prediction")
 plt.ylabel("label")
 plt.title('Correlation Coefficient = {0}'.format(np.round(r,2)))
 plt.legend()
-plt.savefig("img/relation_no.png")
+plt.savefig("img/corr_last60_initial_label.png")
 # plt.savefig("img/v1_relation.png")
 
 # print(a/b)'''

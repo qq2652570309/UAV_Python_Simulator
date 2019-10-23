@@ -3,45 +3,46 @@ import logging
 import time
 import os
 
-from simulator import Simulator
-from simulator1 import Simulator1
+# from simulator import Simulator
+# from simulator1 import Simulator1
 # from simulator3 import Simulator3
 # from simulator5 import Simulator5
+from simulator_routing import Simulator
 
 class Preprocess:
 
     def __init__(self, label=None, pfeature=None, rfeature=None, taskMap=None):
+        logging.info('')
+        logging.info('---Initial Shape---')
+        print('---Initial Shape---')
         if label is None:
             print("ground truth is none")
         else:
             self.gtr = label
+            logging.info('  initial label: {0}\n'.format(self.gtr.shape))
+            print('initial label: ', self.gtr.shape)
 
         if pfeature is None:
             print("pnet featuret is none")
         else:
             self.pfeature = pfeature
+            logging.info('  initial pnet feature: {0}'.format(self.pfeature.shape))
+            print('initial pnet feature', self.pfeature.shape)
 
         if rfeature is None:
             print("rnet feature is none")
         else:
             self.rfeature = rfeature
+            logging.info('  initial rnet feature: {0}'.format(self.rfeature.shape))
+            print('initial rnet feature', self.rfeature.shape)
 
         if taskMap is None:
             print("taskMap is none")
         else:
             self.taskMap = taskMap
+            logging.info('  initial taskMap: {0}\n'.format(self.taskMap.shape))
+            print('  initial taskMap: {0}\n'.format(self.taskMap.shape))
         
-        logging.info('')
-        logging.info('---Initial Shape---')
-        logging.info('  initial pnet feature: {0}'.format(self.pfeature.shape))
-        logging.info('  initial rnet feature: {0}'.format(self.rfeature.shape))
-        logging.info('  initial label: {0}\n'.format(self.gtr.shape))
-        logging.info('  initial taskMap: {0}\n'.format(self.taskMap.shape))
-        print('---Initial Shape---')
-        print('initial pnet feature', self.pfeature.shape)
-        print('initial rnet feature', self.rfeature.shape)
-        print('initial label: ', self.gtr.shape)
-        print('  initial taskMap: {0}\n'.format(self.taskMap.shape))
         print('')
 
     # save data from start to end
@@ -185,6 +186,8 @@ class Preprocess:
         if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
             os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
             os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
+        if os.path.exists('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name)):
+            os.remove('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, name))
         if 'data' in name:
             if 'density' in name:
                 print(' {0} is {1}'.format(name, data.shape))
@@ -225,7 +228,7 @@ class Preprocess:
         logging.info('  process labels:')
         trajectory = np.copy(self.gtr)
         # densityLabel = (batch, 100, 100) in last 10 timesteps
-        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-15, trajectory.shape[1])
+        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-20, trajectory.shape[1])
         self.save(densityLabel, name='label_density', direcoty=direcoty)
 
         logging.info('')
@@ -239,9 +242,9 @@ class Preprocess:
         logging.info('  process Rnet feature:')
         self.save(self.rfeature, name='training_data_trajectory', direcoty=direcoty)
         self.save(densityLabel, name='training_label_density', direcoty=direcoty)
-        logging.info('')
-        logging.info('  process taskMap feature:')
-        self.save(self.taskMap, name="taskMap", direcoty=direcoty)
+        # logging.info('')
+        # logging.info('  process taskMap feature:')
+        # self.save(self.taskMap, name="taskMap", direcoty=direcoty)
         print('finish saving')
 
 
@@ -249,8 +252,8 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
 
-    # s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
-    s = Simulator1(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    # s = Simulator1(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
     # s = Simulator5(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
@@ -262,8 +265,8 @@ if __name__ == "__main__":
     print('total tasks number: ', s.totalUavNum)
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
-    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature, taskMap=s.taskMap)
-    p.featureLabel(direcoty='main_test')
-
+    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
+    p.featureLabel(direcoty='Last20')
+    
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

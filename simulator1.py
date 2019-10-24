@@ -1,7 +1,5 @@
 '''
-Differnt routing
-
-# 
+# add a taskMap used for generate density map based on 15 tasks at every timestep
 '''
 import time
 import os
@@ -11,8 +9,8 @@ import numpy as np
 from Area import Area
 
 
-class Simulator:
-    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100):
+class Simulator1:
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -25,26 +23,21 @@ class Simulator:
         self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
+        self.taskMap = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=int)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
         if os.path.exists('./log.txt'):
             os.remove('log.txt')
     
     def generate(self):
-
+        
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
-<<<<<<< HEAD
-            self.area.refresh(mapSize=self.map_size, areaSize=1, num=90)
-            self.drawPatten_horizontal_vertical(batch_idx)
-            start_time = random.choice(range(0, 80))
-=======
             self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            self.drawPatten_horizontal_vertical(batch_idx)
+            self.patten_horizontal_vertical(batch_idx)
             start_time = random.choice(range(70, 80))
->>>>>>> a7ddb629e36615f51eb2283124cccede03065271
             
             # time iteration
             for currentTime in range(self.time):
@@ -70,12 +63,16 @@ class Simulator:
 
                         # add info into channel
                         if currentTime >= start_time + 10 and currentTime < start_time + 10 + self.taskTime:
-
                             self.tasks[batch_idx,time_idx,task_idx,0] = startRow
                             self.tasks[batch_idx,time_idx,task_idx,1] = startCol
                             self.tasks[batch_idx,time_idx,task_idx,2] = endRow
                             self.tasks[batch_idx,time_idx,task_idx,3] = endCol
 
+                            self.taskMap_horizontal_vertical(batch_idx=batch_idx,
+                                                        startRow=startRow, startCol=startCol,
+                                                        endRow=endRow, endCol=endCol,
+                                                        time_idx=time_idx)
+                        
                         trajectors = self.horizontal_vertical(startRow=startRow, startCol=startCol, 
                                                             endRow=endRow, endCol=endCol, 
                                                             currentTime=currentTime, trajectors=trajectors)
@@ -83,6 +80,7 @@ class Simulator:
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
             self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
+
 
     def horizontal_vertical(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         remainingTime = self.time - currentTime  
@@ -161,7 +159,7 @@ class Simulator:
             self.totalFlyingTime += len(r)
         return trajectors
 
-    def drawPatten_horizontal_vertical(self, batch_idx):
+    def patten_horizontal_vertical(self, batch_idx):
         startPositions = self.area.getLaunchPoint()
         for startRow, startCol, _ in startPositions:
             for endRow, endCol in self.area.getDestination(allPoints=True):
@@ -178,7 +176,7 @@ class Simulator:
                     c = np.arange(endRow, startRow)[::-1]
                 self.Rfeature[batch_idx, c, endCol, 1] = 1
 
-    def drawPatten_vertical_horizontal(self, batch_idx):
+    def patten_vertical_horizontal(self, batch_idx):
         startPositions = self.area.getLaunchPoint()
         for startRow, startCol, _ in startPositions:
             for endRow, endCol in self.area.getDestination(allPoints=True):
@@ -195,13 +193,37 @@ class Simulator:
                     r = np.arange(endCol, startCol)[::-1]
                 self.Rfeature[batch_idx, endRow, r] = 1
 
+    def taskMap_horizontal_vertical(self, batch_idx, startRow, startCol, endRow, endCol, time_idx):
+        # enough time for horizontal
+        if startCol < endCol :
+            r =  np.arange(startCol, endCol+1)
+        else:
+            r = np.arange(endCol, startCol+1)[::-1]
+        self.taskMap[batch_idx, time_idx, startRow, r] += 1
+
+        # enough time for vertical
+        if startRow < endRow:
+            c = np.arange(startRow+1, endRow+1)
+        else:
+            c = np.arange(endRow, startRow)[::-1]
+        self.taskMap[batch_idx, time_idx, c, endCol] += 1
+    
+    def taskMap_vertical_horizontal(self, batch_idx, startRow, startCol, endRow, endCol, time_idx):
+        # enough time for vertical
+        if startRow < endRow:
+            c = np.arange(startRow, endRow+1)
+        else:
+            c = np.arange(endRow, startRow+1)[::-1]
+        self.taskMap[batch_idx, time_idx, c, startCol] += 1
+
+        # enough time for horizontal
+        if startCol < endCol :
+            r =  np.arange(startCol+1, endCol+1)
+        else:
+            r = np.arange(endCol, startCol)[::-1]
+        self.taskMap[batch_idx, time_idx, endRow, r] += 1
+
 
 if __name__ == "__main__":
-    s = Simulator(batch=100, mapSize=100)
-<<<<<<< HEAD
+    s = Simulator1(batch=100, mapSize=100)
     s.generate()
-=======
-    s.generate()
-
-
->>>>>>> a7ddb629e36615f51eb2283124cccede03065271

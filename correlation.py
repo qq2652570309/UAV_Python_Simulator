@@ -9,8 +9,8 @@ def bn(a):
     return a
 
 
-prediction = np.load('../../../data/zzhao/uav_regression/prediction.npy')
-label = np.load('../../../data/zzhao/uav_regression/label.npy')
+prediction = np.load('../prediction.npy')
+label = np.load('../label.npy')
 # v1 model data
 # prediction = np.load('tmpdata/evaluate_cnn.npy')
 # label = np.load('tmpdata/y_test.npy')
@@ -42,7 +42,7 @@ plt.xlabel("prediction")
 plt.ylabel("label")
 plt.title('Correlation Coefficient = {0}'.format(np.round(r,2)))
 plt.legend()
-plt.savefig("img/relation_no.png")
+plt.savefig("img/relation_15_30epics.png")
 # plt.savefig("img/v1_relation.png")
 
 # print(a/b)'''

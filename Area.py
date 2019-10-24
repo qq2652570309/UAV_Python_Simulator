@@ -85,7 +85,7 @@ class Area:
             qualified = True
             for s in select:
                 sx ,sy = locations[s]
-                if abs(x-sx) < 10 and abs(y-sy) < 10:
+                if abs(x-sx) < 7 and abs(y-sy) < 7:
                     qualified = False
                     break
             if qualified:
@@ -158,13 +158,13 @@ if __name__ == "__main__":
     # print(a.getLaunchPoint())
     # print(a.getDestination(allPoints=True))
     # a.image(100,save=True)
-    a.refresh(mapSize=100, areaSize=3, num=10)
-    a.saveImage(size=100, name="area1")
-    a.refresh(mapSize=100, areaSize=3, num=10)
-    a.saveImage(size=100, name="area2")
-    a.refresh(mapSize=100, areaSize=3, num=10)
-    a.saveImage(size=100, name="area3")
-    a.refresh(mapSize=100, areaSize=3, num=10)
-    a.saveImage(size=100, name="area4")
-    a.refresh(mapSize=100, areaSize=3, num=10)
-    a.saveImage(size=100, name="area5")
+    a.refresh(mapSize=100, areaSize=1, num=90)
+    # a.saveImage(size=100, name="area1")
+    a.refresh(mapSize=100, areaSize=1, num=90)
+    # a.saveImage(size=100, name="area2")
+    a.refresh(mapSize=100, areaSize=1, num=90)
+    # a.saveImage(size=100, name="area3")
+    a.refresh(mapSize=100, areaSize=1, num=90)
+    # a.saveImage(size=100, name="area4")
+    a.refresh(mapSize=100, areaSize=1, num=90)
+    # a.saveImage(size=100, name="area5")

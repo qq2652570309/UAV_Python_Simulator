@@ -11,7 +11,7 @@ import numpy as np
 from Area import Area
 
 
-class Simulator3:
+class Simulator:
     def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100):
         self.batch = batch
         self.map_size = mapSize
@@ -36,8 +36,8 @@ class Simulator3:
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
-            self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            self.drawPatten_vertical_horizontal(batch_idx)
+            self.area.refresh(mapSize=self.map_size, areaSize=1, num=90)
+            self.drawPatten_horizontal_vertical(batch_idx)
             start_time = random.choice(range(0, 80))
             
             # time iteration
@@ -70,7 +70,7 @@ class Simulator3:
                             self.tasks[batch_idx,time_idx,task_idx,2] = endRow
                             self.tasks[batch_idx,time_idx,task_idx,3] = endCol
 
-                        trajectors = self.vertical_horizontal(startRow=startRow, startCol=startCol, 
+                        trajectors = self.horizontal_vertical(startRow=startRow, startCol=startCol, 
                                                             endRow=endRow, endCol=endCol, 
                                                             currentTime=currentTime, trajectors=trajectors)
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
@@ -305,5 +305,5 @@ class Simulator3:
 
 
 if __name__ == "__main__":
-    s = Simulator3(batch=100, mapSize=100)
+    s = Simulator(batch=100, mapSize=100)
     s.generate()

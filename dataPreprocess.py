@@ -3,12 +3,10 @@ import logging
 import time
 import os
 
-from simulator import Simulator
-from simulator1 import Simulator1
-from simulator2 import Simulator2
-from simulator3 import Simulator3
-from simulator4 import Simulator4
-from simulator5 import Simulator5
+# from simulator import Simulator
+# from simulator_randTask import Simulator
+from simulator_randTask import Simulator
+
 
 class Preprocess:
 
@@ -138,12 +136,13 @@ class Preprocess:
     def batchNormalize(self, gtr):
         # for i in range(len(gtr)):
         #     gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
-        gtr = (gtr - np.min(gtr)) / (np.max(gtr) - np.min(gtr))
-        logging.info('      after batchNormalize')
-        logging.info('          min: {0}'.format(np.min(gtr)))
-        logging.info('          max: {0}'.format(np.max(gtr)))
-        logging.info('          mean: {0}'.format(np.mean(gtr)))
-        logging.info('          median: {0}'.format(np.median(gtr)))
+        if np.max(gtr) != 0:
+            gtr = (gtr - np.min(gtr)) / (np.max(gtr) - np.min(gtr))
+        # logging.info('      after batchNormalize')
+        # print('          min: {0}'.format(np.min(gtr)))
+        # print('          max: {0}'.format(np.max(gtr)))
+        # print('          mean: {0}'.format(np.mean(gtr)))
+        # print('          median: {0}'.format(np.median(gtr)))
         return gtr
 
 
@@ -236,15 +235,16 @@ class Preprocess:
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
-
-    # s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
-    # s = Simulator1(batch=1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=50)
-    # s = Simulator2(batch=1, time=200, mapSize=100, taskNum=15)
-    # s = Simulator3(batch=1, time=200, mapSize=100, taskNum=15)
-    # s = Simulator4(batch=1, time=200, mapSize=100, taskNum=15)
-    s = Simulator5(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    
+    s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
     s.generate()
+    print(s.trajectors.shape)
+    
+    t = s.trajectors
+    
+    print(np.max(t))
+    
     logging.info('Simulater Finished')
     logging.info('  generation costs {0} \n'.format(time.time() - startTimeTotal))
     print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
     p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
-    p.featureLabel(direcoty='NoNormalize')
+    p.featureLabel(direcoty='randTaskTime')
 
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

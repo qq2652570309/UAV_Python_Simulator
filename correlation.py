@@ -18,7 +18,6 @@ label = np.load('../label.npy')
 # label = label[:40]
 
 
-
 print(prediction.shape)
 print(label.shape)
 

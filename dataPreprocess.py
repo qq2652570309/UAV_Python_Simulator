@@ -1,11 +1,13 @@
 import numpy as np
+from simulator import Simulator
+from simulator1 import Simulator1
 import logging
 import time
 import os
 
 # from simulator import Simulator
 # from simulator_randTask import Simulator
-from simulator_randTask import Simulator
+from simulator_routing import Simulator
 
 
 class Preprocess:
@@ -251,8 +253,11 @@ class Preprocess:
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.disabled = False
-    
-    s = Simulator(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.info('Started')
+
+
+    s = Simulator(batch=1000, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100)
     startTimeTotal = time.time()
     s.generate()
     print(s.trajectors.shape)

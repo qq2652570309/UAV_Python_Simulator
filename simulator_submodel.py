@@ -221,19 +221,22 @@ class Simulator5:
 
 
     def save(self, direcoty='test'):
-        s.trajectorsSlice = (s.trajectorsSlice - np.min(s.trajectorsSlice)) / (np.max(s.trajectorsSlice) - np.min(s.trajectorsSlice))
-
+        # s.trajectorsSlice = (s.trajectorsSlice - np.min(s.trajectorsSlice)) / (np.max(s.trajectorsSlice) - np.min(s.trajectorsSlice))
         if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(direcoty)):
             os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(direcoty))
             os.chmod('../../../data/zzhao/uav_regression/{0}'.format(direcoty), 0o777)
         
         print(' {0} is {1}'.format("data_tasks", self.tasksSlice.shape))
+        if os.path.exists('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "data_tasks")):
+            os.remove('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "data_tasks"))
         np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "data_tasks"), self.tasksSlice)
-        # os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "data_tasks"), 0o777)
+        os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "data_tasks"), 0o777)
 
         print(' {0} is {1}'.format("label_density", s.trajectorsSlice.shape))
+        if os.path.exists('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density")):
+            os.remove('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density"))
         np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density"), s.trajectorsSlice)
-        # os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density"), 0o777)
+        os.chmod('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format(direcoty, "label_density"), 0o777)
 
 if __name__ == "__main__":
     s = Simulator5(batch=3000, mapSize=100)

@@ -36,15 +36,9 @@ class Simulator:
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
-<<<<<<< HEAD
             self.area.refresh(mapSize=self.map_size, areaSize=1, num=90)
             self.drawPatten_horizontal_vertical(batch_idx)
             start_time = random.choice(range(0, 80))
-=======
-            self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
-            self.drawPatten_horizontal_vertical(batch_idx)
-            start_time = random.choice(range(70, 80))
->>>>>>> a7ddb629e36615f51eb2283124cccede03065271
             
             # time iteration
             for currentTime in range(self.time):
@@ -198,10 +192,4 @@ class Simulator:
 
 if __name__ == "__main__":
     s = Simulator(batch=100, mapSize=100)
-<<<<<<< HEAD
     s.generate()
-=======
-    s.generate()
-
-
->>>>>>> a7ddb629e36615f51eb2283124cccede03065271

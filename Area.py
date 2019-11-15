@@ -167,4 +167,4 @@ if __name__ == "__main__":
     a.refresh(mapSize=100, areaSize=1, num=90)
     # a.saveImage(size=100, name="area4")
     a.refresh(mapSize=100, areaSize=1, num=90)
-    # a.saveImage(size=100, name="area5")
+    a.saveImage(size=100, name="area5")

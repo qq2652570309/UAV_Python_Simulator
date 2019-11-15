@@ -10,6 +10,8 @@ import logging
 import numpy as np
 from Area import Area
 
+random.seed(0)
+np.random.seed(0)
 
 class Simulator:
     def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100):
@@ -31,14 +33,14 @@ class Simulator:
             os.remove('log.txt')
     
     def generate(self):
-
+        
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
 
-            self.area.refresh(mapSize=self.map_size, areaSize=1, num=90)
+            self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
             self.drawPatten_horizontal_vertical(batch_idx)
-            start_time = random.choice(range(0, 80))
+            start_time = random.choice(range(70, 80))
             
             # time iteration
             for currentTime in range(self.time):
@@ -193,3 +195,7 @@ class Simulator:
 if __name__ == "__main__":
     s = Simulator(batch=100, mapSize=100)
     s.generate()
+
+
+
+

@@ -12,7 +12,7 @@ import numpy as np
 from Area import Area
 
 
-class SimulatorSub:
+class Simulator5:
     def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60):
         self.batch = batch
         self.map_size = mapSize
@@ -26,15 +26,12 @@ class SimulatorSub:
         self.tasks = np.zeros(shape=(batch, taskTime, taskNum, 5), dtype=int)
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         # tasksSlice = (3000*60, 15, 4)
-        self.tasksSlice = np.zeros(shape=(batch * taskTime, taskNum, 4), dtype=float)
+        self.tasksSlice = np.zeros(shape=(batch * taskTime, taskNum, 4), dtype=int)
         # tasksSlice = (3000*60, 100, 100, 1)
-        self.trajectorsSlice = np.zeros(shape=(batch * taskTime, mapSize, mapSize, 1), dtype=float)
-        self.counter = np.zeros(shape=(batch * taskTime, mapSize, mapSize, 1), dtype=int)
+        self.trajectorsSlice = np.zeros(shape=(batch * taskTime, mapSize, mapSize, 1), dtype=int)
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         self.totalFlyingTime = 0
         self.totalUavNum = 0
-        self.startValue = 0.25
-        self.endValue = 0.75
         if os.path.exists('./log.txt'):
             os.remove('log.txt')
     
@@ -88,7 +85,7 @@ class SimulatorSub:
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
             # self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
-        self.trajectorsSlice = np.nan_to_num(self.trajectorsSlice / self.counter)
+
 
     def vertical_horizontal(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         remainingTime = self.time - currentTime
@@ -210,29 +207,17 @@ class SimulatorSub:
         self.tasksSlice[i, task_idx, 2] = endRow
         self.tasksSlice[i, task_idx, 3] = endCol
 
-
-        # compute each step value
-        pathLen = abs(startRow-endRow) + abs(endCol-startCol) + 1
-        step = (self.endValue-self.startValue)/(pathLen-1)
-        steps = np.around(np.arange(start=self.startValue, stop=self.endValue+step, step=step), 2)
-
-
         if startCol < endCol :
             r =  np.arange(startCol, endCol+1)
         else:
             r = np.arange(endCol, startCol+1)[::-1]
-        # self.trajectorsSlice[i, startRow, r, 0] += 1
-        self.trajectorsSlice[i, startRow, r, 0] += steps[np.arange(0, len(r))]
-        self.counter[i, startRow, r, 0] += 1
-        stepIndex = len(r)
+        self.trajectorsSlice[i, startRow, r, 0] += 1
 
         if startRow < endRow:
             c = np.arange(startRow+1, endRow+1)
         else:
             c = np.arange(endRow, startRow)[::-1]
-        # self.trajectorsSlice[i, c, endCol, 0] += 1
-        self.trajectorsSlice[i, c, endCol, 0] += steps[np.arange(stepIndex, stepIndex+len(c))]
-        self.counter[i, c, endCol, 0] += 1
+        self.trajectorsSlice[i, c, endCol, 0] += 1
 
 
     def save(self, direcoty='test'):
@@ -255,7 +240,7 @@ class SimulatorSub:
     
 
 if __name__ == "__main__":
-    s = SimulatorSub(batch=3000, mapSize=100)
+    s = Simulator5(batch=3000, mapSize=100)
     s.generate()
 
     s.save("feature_extraction_data")

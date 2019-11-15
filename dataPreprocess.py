@@ -1,13 +1,15 @@
 import numpy as np
-from simulator import Simulator
+# from simulator import Simulator
 from simulator1 import Simulator1
 import logging
 import time
 import os
 
+np.random.seed(0)
+
 # from simulator import Simulator
 # from simulator_randTask import Simulator
-from simulator_routing import Simulator
+# from simulator_routing import Simulator
 
 
 class Preprocess:
@@ -244,9 +246,9 @@ class Preprocess:
         logging.info('  process Rnet feature:')
         self.save(self.rfeature, name='training_data_trajectory', direcoty=direcoty)
         self.save(densityLabel, name='training_label_density', direcoty=direcoty)
-        # logging.info('')
-        # logging.info('  process taskMap feature:')
-        # self.save(self.taskMap, name="taskMap", direcoty=direcoty)
+        logging.info('')
+        logging.info('  process taskMap feature:')
+        self.save(self.taskMap, name="taskMap", direcoty=direcoty)
         print('finish saving')
 
 
@@ -256,11 +258,9 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-
-    s = Simulator(batch=1000, time=200, mapSize=100, taskNum=15, trajectoryTime=110, taskTime=100)
+    s = Simulator1(batch=3, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
     s.generate()
-    print(s.trajectors.shape)
     
     t = s.trajectors
     
@@ -273,8 +273,8 @@ if __name__ == "__main__":
     print('total tasks number: ', s.totalUavNum)
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
-    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature)
-    p.featureLabel(direcoty='randTaskTime')
-
+    p = Preprocess(pfeature=s.tasks, label=s.trajectors, rfeature=s.Rfeature, taskMap=s.taskMap)
+    p.featureLabel(direcoty='Last20')
+    
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

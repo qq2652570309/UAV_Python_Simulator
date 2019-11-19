@@ -17,3 +17,6 @@ python generateImage.py
 
 # Official tensorflow-gpu binaries are built with: 
 cuda 9.0, cudnn 7 since TF 1.5; cuda 10.0, cudnn 7 since TF 1.13. 
+
+# redunce warming
+pip install "numpy<1.17"

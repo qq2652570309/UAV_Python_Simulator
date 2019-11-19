@@ -19,3 +19,5 @@ log.*
 .DS_Store
 
 *.hdf5
+
+*.png

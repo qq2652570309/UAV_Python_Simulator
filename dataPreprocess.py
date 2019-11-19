@@ -1,45 +1,94 @@
 import numpy as np
+# from simulator import Simulator
+from simulator_mainNet import SimulatorMainNet
+import logging
+import time
+import os
+
+np.random.seed(0)
+
+# from simulator import Simulator
+# from simulator_randTask import Simulator
+# from simulator_routing import Simulator
 
 
 class Preprocess:
 
-    def __init__(self):
-        self.gtr = np.load("data/groundTruths_raw.npy")
-        self.tsr = np.load("data/trainingSets_raw.npy")
-        print('raw trainingSets', self.tsr.shape)
-        print('raw groundTruth: ', self.gtr.shape)
+    def __init__(self, label=None, mainList=None, subOutput=None, rfeature=None, subList=None, subLabel=None):
+        logging.info('')
+        logging.info('---Initial Shape---')
+        print('\n---Initial Shape---')
+        if label is None:
+            print("MainNet label is none")
+        else:
+            self.gtr = label
+            logging.info('  initial MainNet label: {0}\n'.format(self.gtr.shape))
+            print('initial MainNet label: ', self.gtr.shape)
 
+        if mainList is None:
+            print("MainNet tasklist is none")
+        else:
+            self.mt = mainList
+            logging.info('  initial MainNet tasklist: {0}'.format(self.mt.shape))
+            print('initial MainNet tasklist', self.mt.shape)
+
+        if subOutput is None:
+            print("subNet Output is none")
+        else:
+            self.subOutput = subOutput
+            logging.info('  initial subNet Output: {0}'.format(self.subOutput.shape))
+            print('initial subNet Output', self.subOutput.shape)
+
+        if rfeature is None:
+            print("rnet feature is none")
+        else:
+            self.rfeature = rfeature
+            logging.info('  initial rnet feature: {0}'.format(self.rfeature.shape))
+            print('initial rnet feature', self.rfeature.shape)
+
+        if subList is None:
+            print("subNet tasklist is none")
+        else:
+            self.st = subList
+            logging.info('  initial subNet tasklist: {0}\n'.format(self.st.shape))
+            print('initial subNet tasklist: {0}'.format(self.st.shape))
+
+        if subLabel is None:
+            print("subLabel is none")
+        else:
+            self.sl = subLabel
+            logging.info('  initial subLabel: {0}\n'.format(self.sl.shape))
+            print('initial subLabel: {0}\n'.format(self.sl.shape))
+        
+        print('')
+
+    # save data from start to end
     def splitByTime(self, start=0, end=0):
         if end == 0:
             self.gtr = self.gtr[:, start:]
-            self.tsr = self.tsr[:, start:]
+            # self.tsr = self.tsr[:, start:]
         else:
             self.gtr = self.gtr[:, start:end]
-            self.tsr = self.tsr[:, start:end]
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('splitByTime complete\n')
-
-    # only save the first sample after 30 seconds
-    def from30toEnd(self):
-        # self.gtr = self.gtr[:1, 30:]
-        # self.tsr = self.tsr[:1, 30:]
-        self.gtr = self.gtr[:, 20:]
-        self.tsr = self.tsr[:, 20:]
-        print(self.tsr.shape)
-        print(self.gtr.shape)
-        print('from30toEnd complete\n')
+            # self.tsr = self.tsr[:, start:end]
+        logging.info(self.tsr.shape)
+        logging.info(self.gtr.shape)
+        logging.info('splitByTime complete\n')
 
     # switch all elements to zero or one 
-    def oneOrZero(self):
-        m = np.median(self.gtr[self.gtr!=0])
-        print('median:',m)
+    def oneOrZero(self, gtr):
+        m = np.median(gtr[gtr!=0])
+        logging.info('median: {0}'.format(m))
         # self.gtr[self.gtr<=m] = 0
         # self.gtr[self.gtr>m] = 1
-        self.gtr[self.gtr<m] = 0
-        self.gtr[self.gtr>=m] = 1
-        print('oneOrZero complete\n')
+        gtr[gtr<m] = 0
+        gtr[gtr>=m] = 1
+        logging.info('oneOrZero complete\n')
+        return gtr
 
+    def densityToOne(self, gtr):
+        gtr[gtr>0] = 1
+        logging.info('densityToOne complete\n')
+        return gtr
 
     # ground truth only save the last second (the 30th second)
     def lastSecond(self):
@@ -50,25 +99,76 @@ class Preprocess:
         self.gtr = gtr1
         print('lastSecond complete\n')
 
-    # print number of non-zeros and zeros
-    def computeWeights(self):
-        one = self.gtr[self.gtr>0].size
-        zero = self.gtr[self.gtr==0].size
-        print('zero:',zero)
-        print('one:',one)
-        print('weight:',zero/one)
-        print('computeWeights complete\n')
+    def checkDataIdentical(self, data1, data2):
+        # p = np.random.randint(0, len(data1), 5)
+        for i in range(0,5):
+            logging.info(np.all(data1[i] == data2[i]))
+        logging.info('check complete\n')
 
+    def compressTime(self):
+        # feature: (n, 200, 10,  5) --> (n, 20, 100, 5)
+        # label  : (n, 200, 100, 100) --> (n, 20, 100, 100)
+        # nf : (n, 20, 100, 5)
+        # nl : (n, 20, 100, 100)
+
+        nf = np.zeros((self.tsr.shape[0],int(self.tsr.shape[1]/10),self.tsr.shape[2]*10,self.tsr.shape[3]))
+        nl = np.zeros((self.gtr.shape[0],int(self.gtr.shape[1]/10),self.gtr.shape[2],self.gtr.shape[3]))
+
+        for i in range(10):
+            ft, lb = self.tsr[i], self.gtr[i]
+            for it in range(10, 201, 10):
+                time_idx = int(it/10)-1
+                # every sample, generate density map in 10 time intervel
+                nl[i, time_idx] = np.sum(lb[it-10:it], axis=0)/10
+                # every sample, record all task
+                task_num = 0
+                for j in range(it-10, it):
+                    for k in range(10):
+                        nf[i, time_idx, task_num, :] = ft[i, j, k, :]
+                        task_num+=1
+            nl[i] = self.batchNormalize(nl[i])
+        self.tsr = nf
+        self.gtr = nl
+
+    def standardDeviation(self, interval=15):
+        # lb: (n, 60, 100, 100) --> (n, 100, 100)
+        # nf: (n, 60, 100, 100) --> (n, 30, 100, 100)
+        batchNum, intervalNum, row, col = self.gtr.shape
+        intervalNum -= 2*interval
+        lb = np.zeros((batchNum, row, col))
+        nf = np.zeros((batchNum, intervalNum, row, col))
+        for b in range(batchNum):
+            lb[b] = np.sum(self.gtr[b, intervalNum+interval:intervalNum+interval*2], axis=0) 
+            for i in range(intervalNum):
+                print(i, i+interval)
+                nf[b, i] = np.sum(self.gtr[b, i:i+interval], axis=0)
+
+    # print number of non-zeros and zeros
+    def computeWeights(self, gtr):
+        one = gtr[gtr>0].size
+        zero = gtr[gtr==0].size
+        logging.info('zero: {0}'.format(zero))
+        logging.info('one: {0}'.format(one))
+        logging.info('weight: {0}'.format(zero/one))
+        logging.info('computeWeights complete\n')
 
     # nomalize groud truth as the last second
-    def batchNormalize(self):
-        for i in range(len(self.gtr)):
-            self.gtr[i] = (self.gtr[i] - np.min(self.gtr[i])) / (np.max(self.gtr[i]) - np.min(self.gtr[i]))
-        print('min: ', np.min(self.gtr))
-        print('max: ', np.max(self.gtr))
-        print('mean: ', np.mean(self.gtr))
-        print('median: ', np.median(self.gtr))
-        print('batchNormalize complete\n')
+    def batchNormalize(self, gtr):
+        # for i in range(len(gtr)):
+        #     gtr[i] = (gtr[i] - np.min(gtr[i])) / (np.max(gtr[i]) - np.min(gtr[i]))
+        if np.max(gtr) != 0:
+            gtr = (gtr - np.min(gtr)) / (np.max(gtr) - np.min(gtr))
+        # logging.info('      after batchNormalize')
+        # print('          min: {0}'.format(np.min(gtr)))
+        # print('          max: {0}'.format(np.max(gtr)))
+        # print('          mean: {0}'.format(np.mean(gtr)))
+        # print('          median: {0}'.format(np.median(gtr)))
+        return gtr
+
+    # lumped map divided time, return with batch normalization
+    def averageDensity(self, gtr, time):
+        gtr = gtr/time
+        return self.batchNormalize(gtr)
 
     # broadcast one sample to many 
     def broadCast(self):
@@ -79,31 +179,91 @@ class Preprocess:
         print('broadCast complete\n')
         
     # (30, 32, 32) --> (32, 32)
-    def generateDensity(self):
-        self.gtr = np.sum(self.gtr, axis=1)
-        print(self.gtr.shape)
-        print('generateDensity complete\n')
+    def generateDensity(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        logging.info('      density map is {0}'.format(temp.shape))
+        return temp    
 
-    def saveData(self):
-        np.save('data/trainingSets_diff.npy', self.tsr)
-        np.save('data/groundTruths_diff.npy', self.gtr)
-        print('trainingSets shape', self.tsr.shape)
-        print('groundTruths shape', self.gtr.shape)
-        print('save complete\n')
+    def generatePattern(self, gtr):
+        temp = np.sum(gtr, axis=1)
+        temp[temp>0] = 1
+        logging.info(temp.shape)
+        logging.info('generatePattern complete\n')
+        return temp
 
-    def checkGroundTruthIdentical(self):
-        p = np.random.randint(0, len(self.gtr), 5)
-        for i in range(1,5):
-            print(np.all(self.gtr[p[i]] == self.gtr[p[i-1]]))
-        print('check complete\n')
+    def save(self, data, name='test', directory='test', subDirectory='subtest'):
+        if not os.path.exists('../../../data/zzhao/uav_regression/{0}'.format(directory)):
+            os.mkdir('../../../data/zzhao/uav_regression/{0}'.format(directory))
+            os.chmod('../../../data/zzhao/uav_regression/{0}'.format(directory), 0o777)
+        if not os.path.exists('../../../data/zzhao/uav_regression/{0}/{1}'.format(directory, subDirectory)):
+            os.mkdir('../../../data/zzhao/uav_regression/{0}/{1}'.format(directory, subDirectory))
+            os.chmod('../../../data/zzhao/uav_regression/{0}/{1}'.format(directory, subDirectory), 0o777)
+        
+        if os.path.exists('../../../data/zzhao/uav_regression/{0}/{1}/{2}.npy'.format(directory, subDirectory, name)):
+            os.remove('../../../data/zzhao/uav_regression/{0}/{1}/{2}.npy'.format(directory, subDirectory, name))
 
-p = Preprocess()
-p.splitByTime(20)
-# p.from30toEnd()
-p.oneOrZero()
-p.generateDensity()
-p.batchNormalize()
-p.computeWeights()
-# p.broadCast()
-p.checkGroundTruthIdentical()
-p.saveData()
+        np.save('../../../data/zzhao/uav_regression/{0}/{1}/{2}.npy'.format(directory, subDirectory, name), data)
+        os.chmod('../../../data/zzhao/uav_regression/{0}/{1}/{2}.npy'.format(directory, subDirectory, name), 0o777)
+        print(' {0}/{1}: {2} save complete\n'.format(subDirectory, name, data.shape))
+
+
+    # generate density map from timestep start -> end
+    def intervalDensity(self, data, start, end):
+        logging.info('      generate density map from {0} to {1}'.format(start, end))
+        interval = data[:,start:end]
+        densityMap = self.generateDensity(interval)
+        return self.averageDensity(densityMap, end-start)
+
+    def featureLabel(self, directory='test'):
+        # ---------------------- main network ----------------------      
+        logging.info('  process labels:')
+        trajectory = np.copy(self.gtr)
+        # densityLabel = (batch, 100, 100) in last 10 timesteps
+        densityLabel = self.intervalDensity(trajectory, trajectory.shape[1]-20, trajectory.shape[1])
+        self.save(densityLabel, name='label_mainnet', directory=directory, subDirectory='fushion')
+
+        logging.info('')
+        logging.info('  process features:')
+        # desntiyFeature = (batch, 100, 100) in first 10 timesteps
+        desntiyFeature = self.intervalDensity(trajectory, 0, 10)
+        self.save(desntiyFeature, name='data_init', directory=directory, subDirectory='fushion')
+        # tasklist = (batch, 60, 15, 5)
+        self.save(self.mt, name='data_tasks', directory=directory, subDirectory='fushion')
+        # subnet output = (batch, 60, 100, 100)
+        self.save(self.subOutput, name='data_subnet', directory=directory, subDirectory='fushion')
+        logging.info('')
+        
+        # ---------------------- sub network ----------------------
+        logging.info('  process subnet label:')
+        self.save(self.sl, name="label_subnet", directory=directory, subDirectory='subnet')
+        logging.info('  process subnet tasklist:')
+        self.save(self.st, name="data_tasklist", directory=directory, subDirectory='subnet')
+        
+        print('finish saving')
+
+
+if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.disabled = False
+    logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
+    logging.info('Started')
+
+    s = SimulatorMainNet(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    startTimeTotal = time.time()
+    s.generate()
+    
+    logging.info('Simulater Finished')
+    logging.info('  generation costs {0} \n'.format(time.time() - startTimeTotal))
+    print('avg flying time: ', s.totalFlyingTime/s.totalUavNum)
+    logging.info('avg flying time: {0} \n'.format( s.totalFlyingTime/s.totalUavNum))
+    print('total tasks number: ', s.totalUavNum)
+    logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
+
+    p = Preprocess(mainList=s.mainTaskList, label=s.trajectors,
+                    subOutput=s.subOutput, rfeature=s.Rfeature,
+                    subLabel=s.subLabel, subList=s.subTaskList)
+    p.featureLabel(directory='mainFlow')
+    
+    logging.info('Finished dataPreprocess')
+    print('Finished dataPreprocess')
+

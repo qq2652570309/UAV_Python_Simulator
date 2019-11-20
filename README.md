@@ -6,6 +6,7 @@
 * init:     data_init  (3k, 100, 100)
 * subnet output: data_subnet   (3k, 60, 100, 100)
 * mainnet label: label_mainnet (3k, 100, 100)
+* nofly: env (3k, 100, 100)
 
 ## subnet
 * tasklist: data_tasks   (180k, 15, 5)

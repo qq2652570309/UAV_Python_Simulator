@@ -433,18 +433,15 @@ class SimulatorTest:
         nfz = self.NFZ[:100]
         areas = nfz + trajector
         
-        fig, axs = plt.subplots(1, 10, figsize=(40, 6))
+        # fig, axs = plt.subplots(1, 10, figsize=(40, 6))
         # for ax, title, area in zip(axs, ['trajector', 'subLabel', 'counter', 'Rfeature'], 
         #                                 [trajector, subLabel, counter, Rfeature]):
-        for ax, area in zip(axs, areas):
-            # for i in range(45, 75, 1):
-            #     for j in range(45, 75, 1):
-            #         area[i, j] = -1
-            ax.imshow(area, cmap=plt.cm.gnuplot)
-            # ax.set_title(title)
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        plt.savefig("img/{0}.png".format("test"))
+        for i in range(areas.shape[0]):
+            area = areas[i]
+            plt.imshow(area, cmap=plt.cm.gnuplot)
+            # plt.get_xaxis().set_visible(False)
+            # plt.get_yaxis().set_visible(False)
+            plt.savefig("img/{0}.png".format(i))
 
 
 if __name__ == "__main__":

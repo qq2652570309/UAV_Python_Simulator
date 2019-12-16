@@ -1,22 +1,37 @@
-# UAV_POSTPROCESS
+# UAV_Python_Simulator
 
-# installation
+
+## fushion
+* tasklist: data_tasks (3k, 60, 15, 5)
+* init:     data_init  (3k, 100, 100)
+* subnet output: data_subnet   (3k, 60, 100, 100)
+* nofly: data_env (3k, 100, 100)
+* mainnet label: label_mainnet (3k, 100, 100)
+
+## subnet
+* tasklist: data_tasks   (180k, 15, 5)
+* nofly:  data_env (180k, 100, 100)
+* label:    label_subnet (180k, 100, 100)
+
+## installation
 pip install -r requirement
 
-# generate training data and ground truth
-python simulator.py
-
-# preprocessing data
+## generate whole data
+```
 python dataPreprocess.py
+```
 
-# training
-python model.py
+## generate data for Main Network
+simulator_mainNet.py
 
-# generate image
-python generateImage.py
+## generate data for Main Network
+simulator_subNet.py
 
-# Official tensorflow-gpu binaries are built with: 
-cuda 9.0, cudnn 7 since TF 1.5; cuda 10.0, cudnn 7 since TF 1.13. 
+## preprocessing data
+dataPreprocess.py
 
-# redunce warming
-pip install "numpy<1.17"
+## generate image
+generateImage.py
+
+## redunce warming
+pip install "numpy<1.17" or numpy==1.16.4

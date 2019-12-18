@@ -1,25 +1,20 @@
 '''
-# main net + subnet + no fly zone
+# main net + no fly zone + astar
 '''
-
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-
 import time
 import os
 import random
 import logging
 import numpy as np
 from Area import Area
+from collections import deque
+from drone import Drone
 
 random.seed(0)
 np.random.seed(0)
 
-class SimulatorNFZ:
-    def __init__(self, batch = 1, time=350, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
+class SimulatorTest:
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -67,6 +62,8 @@ class SimulatorNFZ:
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
+            droneId = 0
+            flyingDrones = deque()
             # self.drawPatten_horizontal_vertical(batch_idx)
             # self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
             self.area.refresh(batch=batch_idx)
@@ -82,6 +79,20 @@ class SimulatorNFZ:
             for currentTime in range(self.time):
                 if (currentTime >= start_time + self.trajectoryTime):
                     break
+
+                # iterate and move all flying drones
+                if flyingDrones:
+                    tail = flyingDrones[-1].id
+
+                    while flyingDrones[0].id != tail:
+                        drone = flyingDrones.popleft()
+                        self.uavMove(drone, currentTime, trajectors)
+                        flyingDrones.append(drone)
+                    drone = flyingDrones.popleft()
+                    self.uavMove(drone, currentTime, trajectors)
+                    flyingDrones.append(drone)
+                    
+
                 # task iteration
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
 
@@ -103,66 +114,24 @@ class SimulatorNFZ:
                     # if there is a launching UAV
                     if succ:
                         self.totalUavNum += 1
+                        droneId += 1
                         endRow, endCol = self.area.getDestination()
+                        drone = Drone(id=droneId, launch_row=startRow, launch_col=startCol, landing_row=endRow, landing_col=endCol)
+                        flyingDrones.appendleft(drone)
+                        
                         self.Rfeature[batch_idx, startRow, startCol, 0] = launchingRate
                         self.Rfeature[batch_idx, endRow, endCol, 0] = 0.3
                         # whether current time is in task time interval
                         isInterval  = True if currentTime >= start_time + 10 and currentTime < start_time + 10 + self.taskTime else False
-                        path = []
-                        pathLen = []
 
                         if isInterval:
                             self.mainTaskList[batch_idx,time_idx,task_idx,0] = startRow
                             self.mainTaskList[batch_idx,time_idx,task_idx,1] = startCol
                             self.mainTaskList[batch_idx,time_idx,task_idx,2] = endRow
                             self.mainTaskList[batch_idx,time_idx,task_idx,3] = endCol
-
-                        # [ and ]
-                        if noFlyZone[0, 1] <= startCol <= noFlyZone[2, 1] and noFlyZone[0, 1] <= endCol <= noFlyZone[2, 1]:
-                            path, pathLen = self.verticalRouting(startRow, startCol, endRow, endCol, noFlyZone)
-                            trajectors = self.threeStageRouting(path, pathLen, currentTime, batch_idx, time_idx, isInterval, trajectors)
-                        # |冖| and |_|
-                        elif noFlyZone[0, 0] <= startRow <= noFlyZone[2, 0] and noFlyZone[0, 0] <= endRow <= noFlyZone[2, 0] :
-                            path, pathLen = self.horizontalRouting(startRow, startCol, endRow, endCol, noFlyZone)
-                            trajectors = self.threeStageRouting(path, pathLen, currentTime, batch_idx, time_idx, isInterval, trajectors)
-                        # modify routing
-                        else:
-                            def isHorizontalCross():
-                                if not noFlyZone[0, 0] <= startRow <= noFlyZone[2, 0]:
-                                    return False
-                                uav_left = min(startCol, endCol)
-                                uav_right = max(startCol, endCol)
-                                nfz_left = noFlyZone[0,1]
-                                nfz_right = noFlyZone[1,1]
-                                if uav_left <= nfz_left <= uav_right <= nfz_right:
-                                    return True
-                                if nfz_left <= uav_left <= nfz_right <= uav_right:
-                                    return True
-                                if uav_left <= nfz_left < nfz_right <= uav_right:
-                                    return True
-                                return False
-                            
-                            def isVerticalCross():
-                                if not noFlyZone[0,1] <= endCol <= noFlyZone[2,1]:
-                                    return False
-                                uav_up = min(startRow, endRow)
-                                uav_down = max(startRow, endRow)
-                                nfz_up = noFlyZone[0,0]
-                                nfz_down = noFlyZone[2,0]
-                                if uav_up <= nfz_up < nfz_down <= uav_down:
-                                    return True
-                                return False 
                         
-                            if isHorizontalCross() or isVerticalCross():
-                                # vertically move first, horizontally move second
-                                trajectors = self.vertical_horizontal(startRow, startCol, endRow, endCol, currentTime, trajectors)
-                                if isInterval:
-                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=False)
-                            else:
-                                # horizontally move first, vertically move second
-                                trajectors = self.horizontal_vertical(startRow, startCol, endRow, endCol, currentTime, trajectors)
-                                if isInterval:
-                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=True)
+                        trajectors[currentTime,startRow,startCol] += 1
+                            
 
             self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
             
@@ -174,7 +143,36 @@ class SimulatorNFZ:
         for b in range(self.batch):
             for t in range(self.taskTime):
                 self.subOutput[b, t] = self.subLabel[b*self.taskTime+t]
+        
             
+
+    def uavMove(self, drone, currentTime, trajectors):
+        # horizontal move
+        if drone.current_col != drone.landing_col:
+            # from right to left
+            if drone.current_col > drone.landing_col:
+                # directly move
+                if trajectors[currentTime, drone.current_row, drone.current_col-1] == 0 :
+                    drone.current_col -= 1
+                else:
+                    print('find another way')
+
+            # from left to right
+            else:
+                drone.current_col += 1
+        # vertical move
+        elif drone.current_row != drone.landing_row :
+            if drone.current_row > drone.landing_row :
+                drone.current_row -= 1
+            else:
+                drone.current_row += 1
+        else:
+            print('landing')
+        
+        trajectors[currentTime, drone.current_row, drone.current_col] += 1
+
+        pass
+
     
     def horizontal_vertical(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         remainingTime = self.time - currentTime
@@ -427,28 +425,12 @@ class SimulatorNFZ:
         return trajectors
 
 
-    def image(self):
-        trajector = self.trajectors[:10]
-        trajector = np.sum(trajector, axis=1)
-        nfz = self.NFZ[:10]
-        areas = nfz + trajector
-        
-        # fig, axs = plt.subplots(1, 10, figsize=(40, 6))
-        # for ax, title, area in zip(axs, ['trajector', 'subLabel', 'counter', 'Rfeature'], 
-        #                                 [trajector, subLabel, counter, Rfeature]):
-        for i in range(areas.shape[0]):
-            area = areas[i]
-            plt.imshow(area, cmap=plt.cm.gnuplot)
-            # plt.get_xaxis().set_visible(False)
-            # plt.get_yaxis().set_visible(False)
-            plt.savefig("img/{0}.png".format(i))
-
 
 if __name__ == "__main__":
     timeCount = time.time()
-    s = SimulatorNFZ(batch=10, mapSize=100)
+    s = SimulatorTest(batch=10, mapSize=100)
     s.generate()
-    s.image()
+
     # print('\ntotal cost {0}'.format(time.time() - timeCount))
     # print("\n--------SubNet--------")
     # print('subTaskList: {0}'.format(s.subTaskList.shape))

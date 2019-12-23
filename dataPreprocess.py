@@ -1,6 +1,7 @@
 import numpy as np
 # from simulator import Simulator
-from simulator_mainNet import SimulatorMainNet
+# from simulatorNFZ import SimulatorNFZ
+from simulator_astar import SimulatorAstar
 import logging
 import time
 import os
@@ -14,7 +15,7 @@ np.random.seed(0)
 
 class Preprocess:
 
-    def __init__(self, label=None, mainList=None, subOutput=None, rfeature=None, subList=None, subLabel=None):
+    def __init__(self, label=None, mainList=None, subOutput=None, subOutputCube=None, rfeature=None, subList=None, subLabel=None, noFlyZone=None):
         logging.info('')
         logging.info('---Initial Shape---')
         print('\n---Initial Shape---')
@@ -38,6 +39,13 @@ class Preprocess:
             self.subOutput = subOutput
             logging.info('  initial subNet Output: {0}'.format(self.subOutput.shape))
             print('initial subNet Output', self.subOutput.shape)
+        
+        if subOutputCube is None:
+            print("subNet Output Cube is none")
+        else:
+            self.subOutputCube = subOutputCube
+            logging.info('  initial subNet Cube Output: {0}'.format(self.subOutputCube.shape))
+            print('initial subNet Cube Output', self.subOutputCube.shape)
 
         if rfeature is None:
             print("rnet feature is none")
@@ -60,6 +68,13 @@ class Preprocess:
             logging.info('  initial subLabel: {0}\n'.format(self.sl.shape))
             print('initial subLabel: {0}\n'.format(self.sl.shape))
         
+        if noFlyZone is None:
+            print("noFlyZone is none")
+        else:
+            self.nfz = noFlyZone
+            logging.info('  noFlyZone: {0}\n'.format(self.nfz.shape))
+            print('noFlyZone: {0}\n'.format(self.nfz.shape))
+
         print('')
 
     # save data from start to end
@@ -213,7 +228,7 @@ class Preprocess:
         interval = data[:,start:end]
         densityMap = self.generateDensity(interval)
         return self.averageDensity(densityMap, end-start)
-
+    
     def featureLabel(self, directory='test'):
         # ---------------------- main network ----------------------      
         logging.info('  process labels:')
@@ -232,13 +247,19 @@ class Preprocess:
         # subnet output = (batch, 60, 100, 100)
         self.save(self.subOutput, name='data_subnet', directory=directory, subDirectory='fushion')
         logging.info('')
+        # subnet Cube output = (batch, 60, 100, 100)
+        self.save(self.subOutputCube, name='data_subnet_cube', directory=directory, subDirectory='fushion')
+        logging.info('')
         
         # ---------------------- sub network ----------------------
         logging.info('  process subnet label:')
         self.save(self.sl, name="label_subnet", directory=directory, subDirectory='subnet')
         logging.info('  process subnet tasklist:')
         self.save(self.st, name="data_tasklist", directory=directory, subDirectory='subnet')
-        
+        # ---------------------- No Fly Zone ----------------------
+        logging.info('  process subnet label:')
+        self.save(self.nfz, name="data_nfz", directory=directory, subDirectory='fushion')
+
         print('finish saving')
 
 
@@ -248,7 +269,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
-    s = SimulatorMainNet(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+    s = SimulatorAstar(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
     startTimeTotal = time.time()
     s.generate()
     
@@ -260,9 +281,10 @@ if __name__ == "__main__":
     logging.info('total tasks number: {0} \n'.format(s.totalUavNum))
 
     p = Preprocess(mainList=s.mainTaskList, label=s.trajectors,
-                    subOutput=s.subOutput, rfeature=s.Rfeature,
+                    subOutput=s.subOutput, subOutputCube=s.subOutputCube, 
+                    rfeature=s.Rfeature, noFlyZone=s.NFZ,
                     subLabel=s.subLabel, subList=s.subTaskList)
-    p.featureLabel(directory='mainFlow')
+    p.featureLabel(directory='astar')
     
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

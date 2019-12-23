@@ -1,20 +1,26 @@
 '''
-# main net + no fly zone + astar
+# main net + subnet + no fly zone + astar
 '''
+
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+
 import time
 import os
 import random
 import logging
 import numpy as np
 from Area import Area
-from collections import deque
 from drone import Drone
 
 random.seed(0)
 np.random.seed(0)
 
-class SimulatorTest:
-    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
+class SimulatorAstar:
+    def __init__(self, batch = 1, time=350, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -36,6 +42,8 @@ class SimulatorTest:
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         # subOutput = (3000, 60, 100, 100), tasklist as input for MainNet
         self.subOutput = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=float)
+        # subOutputCube = (3000, 60, 100, 100), tasklist as input for MainNet, 3D cube
+        self.subOutputCube = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=int)
         # Rnet input
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         # no fly zone
@@ -62,8 +70,6 @@ class SimulatorTest:
         for batch_idx in range(self.batch):
             startTimeIter = time.time()
             trajectors = np.zeros(shape=(self.time, self.map_size, self.map_size), dtype=int)
-            droneId = 0
-            flyingDrones = deque()
             # self.drawPatten_horizontal_vertical(batch_idx)
             # self.area.refresh(mapSize=self.map_size, areaSize=3, num=10)
             self.area.refresh(batch=batch_idx)
@@ -75,24 +81,24 @@ class SimulatorTest:
             x3, y3 = noFlyZone[2]
             self.NFZ[batch_idx, x1:x3, y1:y3] = 120
             
+            droneId=0
+            flyingDrones = []
+            
             # time iteration
             for currentTime in range(self.time):
                 if (currentTime >= start_time + self.trajectoryTime):
                     break
-
+                
                 # iterate and move all flying drones
-                if flyingDrones:
-                    tail = flyingDrones[-1].id
-
-                    while flyingDrones[0].id != tail:
-                        drone = flyingDrones.popleft()
-                        self.uavMove(drone, currentTime, trajectors)
-                        flyingDrones.append(drone)
-                    drone = flyingDrones.popleft()
-                    self.uavMove(drone, currentTime, trajectors)
-                    flyingDrones.append(drone)
-                    
-
+                for drone in flyingDrones:
+                    trajectors = drone.move(currentTime)
+                
+                # remove arrived drones
+                for drone in flyingDrones:
+                    if drone.isArrived():
+                        flyingDrones.remove(drone)
+                
+                
                 # task iteration
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
 
@@ -114,15 +120,19 @@ class SimulatorTest:
                     # if there is a launching UAV
                     if succ:
                         self.totalUavNum += 1
-                        droneId += 1
                         endRow, endCol = self.area.getDestination()
-                        drone = Drone(id=droneId, launch_row=startRow, launch_col=startCol, landing_row=endRow, landing_col=endCol)
-                        flyingDrones.appendleft(drone)
+                        
+                        droneId += 1
+                        drone = Drone(id=droneId, launch_row=startRow, launch_col=startCol, landing_row=endRow, landing_col=endCol,
+                                      trajectors=trajectors, noflyzone=noFlyZone)
+                        flyingDrones.append(drone)
                         
                         self.Rfeature[batch_idx, startRow, startCol, 0] = launchingRate
                         self.Rfeature[batch_idx, endRow, endCol, 0] = 0.3
                         # whether current time is in task time interval
                         isInterval  = True if currentTime >= start_time + 10 and currentTime < start_time + 10 + self.taskTime else False
+                        path = []
+                        pathLen = []
 
                         if isInterval:
                             self.mainTaskList[batch_idx,time_idx,task_idx,0] = startRow
@@ -130,8 +140,52 @@ class SimulatorTest:
                             self.mainTaskList[batch_idx,time_idx,task_idx,2] = endRow
                             self.mainTaskList[batch_idx,time_idx,task_idx,3] = endCol
                         
-                        trajectors[currentTime,startRow,startCol] += 1
+                        # [ and ]
+                        if noFlyZone[0, 1] <= startCol <= noFlyZone[2, 1] and noFlyZone[0, 1] <= endCol <= noFlyZone[2, 1]:
+                            path, pathLen = self.verticalRouting(startRow, startCol, endRow, endCol, noFlyZone)
+                            trajectors = self.threeStageRouting(path, pathLen, currentTime, batch_idx, time_idx, isInterval, trajectors)
+                        # |冖| and |_|
+                        elif noFlyZone[0, 0] <= startRow <= noFlyZone[2, 0] and noFlyZone[0, 0] <= endRow <= noFlyZone[2, 0] :
+                            path, pathLen = self.horizontalRouting(startRow, startCol, endRow, endCol, noFlyZone)
+                            trajectors = self.threeStageRouting(path, pathLen, currentTime, batch_idx, time_idx, isInterval, trajectors)
+                        # modify routing
+                        else:
+                            def isHorizontalCross():
+                                if not noFlyZone[0, 0] <= startRow <= noFlyZone[2, 0]:
+                                    return False
+                                uav_left = min(startCol, endCol)
+                                uav_right = max(startCol, endCol)
+                                nfz_left = noFlyZone[0,1]
+                                nfz_right = noFlyZone[1,1]
+                                if uav_left <= nfz_left <= uav_right <= nfz_right:
+                                    return True
+                                if nfz_left <= uav_left <= nfz_right <= uav_right:
+                                    return True
+                                if uav_left <= nfz_left < nfz_right <= uav_right:
+                                    return True
+                                return False
                             
+                            def isVerticalCross():
+                                if not noFlyZone[0,1] <= endCol <= noFlyZone[2,1]:
+                                    return False
+                                uav_up = min(startRow, endRow)
+                                uav_down = max(startRow, endRow)
+                                nfz_up = noFlyZone[0,0]
+                                nfz_down = noFlyZone[2,0]
+                                if uav_up <= nfz_up < nfz_down <= uav_down:
+                                    return True
+                                return False 
+                        
+                            if isHorizontalCross() or isVerticalCross():
+                                # vertically move first, horizontally move second
+                                trajectors = self.vertical_horizontal(startRow, startCol, endRow, endCol, currentTime, trajectors)
+                                if isInterval:
+                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=False)
+                            else:
+                                # horizontally move first, vertically move second
+                                trajectors = self.horizontal_vertical(startRow, startCol, endRow, endCol, currentTime, trajectors)
+                                if isInterval:
+                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=True)
 
             self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
             
@@ -143,36 +197,7 @@ class SimulatorTest:
         for b in range(self.batch):
             for t in range(self.taskTime):
                 self.subOutput[b, t] = self.subLabel[b*self.taskTime+t]
-        
             
-
-    def uavMove(self, drone, currentTime, trajectors):
-        # horizontal move
-        if drone.current_col != drone.landing_col:
-            # from right to left
-            if drone.current_col > drone.landing_col:
-                # directly move
-                if trajectors[currentTime, drone.current_row, drone.current_col-1] == 0 :
-                    drone.current_col -= 1
-                else:
-                    print('find another way')
-
-            # from left to right
-            else:
-                drone.current_col += 1
-        # vertical move
-        elif drone.current_row != drone.landing_row :
-            if drone.current_row > drone.landing_row :
-                drone.current_row -= 1
-            else:
-                drone.current_row += 1
-        else:
-            print('landing')
-        
-        trajectors[currentTime, drone.current_row, drone.current_col] += 1
-
-        pass
-
     
     def horizontal_vertical(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
         remainingTime = self.time - currentTime
@@ -190,7 +215,7 @@ class SimulatorTest:
             else:
                 r = np.arange(startCol-remainingTime+1, startCol+1)[::-1]
         t1 = np.arange(currentTime, currentTime+len(r))
-        trajectors[t1,startRow,r] += 1
+        # trajectors[t1,startRow,r] += 1
         remainingTime -= len(r)
         self.totalFlyingTime += len(r)
 
@@ -209,7 +234,7 @@ class SimulatorTest:
                 else:
                     c = np.arange(startRow-remainingTime, startRow)[::-1]
             t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-            trajectors[t2, c, endCol] += 1
+            # trajectors[t2, c, endCol] += 1
             self.totalFlyingTime += len(c)
         return trajectors
 
@@ -229,7 +254,7 @@ class SimulatorTest:
                 c = np.arange(startRow-remainingTime+1, startRow+1)[::-1]
 
         t1 = np.arange(currentTime, currentTime+len(c))
-        trajectors[t1,c,startCol] += 1
+        # trajectors[t1,c,startCol] += 1
         remainingTime -= len(c)
         self.totalFlyingTime += len(c)
 
@@ -247,7 +272,7 @@ class SimulatorTest:
                 else:
                     r = np.arange(startCol-remainingTime, startCol)[::-1]
             t2 = np.arange(t1[-1]+1, t1[-1] + len(r)+1)
-            trajectors[t2,endRow,r] += 1
+            # trajectors[t2,endRow,r] += 1
             remainingTime -= len(r)
             self.totalFlyingTime += len(r)
         return trajectors
@@ -294,12 +319,12 @@ class SimulatorTest:
         self.subTaskList[i, task_idx, 1] = startCol
         self.subTaskList[i, task_idx, 2] = endRow
         self.subTaskList[i, task_idx, 3] = endCol
-
+        
         # compute each step value
         pathLen = abs(startRow-endRow) + abs(endCol-startCol) + 1
         step = (self.endValue-self.startValue)/(pathLen-1)
         steps = np.around(np.arange(start=self.startValue, stop=self.endValue+step, step=step), 2)
-
+        
         if horizontal:
             if startCol < endCol :
                 r =  np.arange(startCol, endCol+1)
@@ -309,7 +334,14 @@ class SimulatorTest:
             self.subLabel[i, startRow, r] += steps[np.arange(0, len(r))]
             self.counter[i, startRow, r] += 1
             stepIndex = len(r)
-
+            # cube subouput
+            if time_idx+stepIndex >= 60:
+                t1 = np.arange(time_idx, 60)
+            else:
+                t1 = np.arange(time_idx, time_idx+stepIndex)
+            for ti, ri in zip(t1, r):
+                self.subOutputCube[batch_idx,ti,startRow,ri] += 1
+            
             if startRow < endRow:
                 c = np.arange(startRow+1, endRow+1)
             else:
@@ -317,23 +349,47 @@ class SimulatorTest:
             # self.subLabel[i, task_idx, c, endCol] += 1
             self.subLabel[i, c, endCol] += steps[np.arange(stepIndex, stepIndex+len(c))]
             self.counter[i, c, endCol] += 1
+            # cube subouput
+            if t1[-1] < 60:
+                if t1[-1] + len(c)+1 >= 60:
+                    t2 = np.arange(t1[-1]+1, 60)
+                else:
+                    t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
+                for ti, ci in zip(t2, c):
+                    self.subOutputCube[batch_idx,ti,ci,endCol] += 1
+
         else:
             if startRow < endRow:
-                c = np.arange(startRow+1, endRow+1)
+                c = np.arange(startRow, endRow+1)
             else:
-                c = np.arange(endRow, startRow)[::-1]
+                c = np.arange(endRow, startRow+1)[::-1]
             # self.subLabel[i, task_idx, c, endCol] += 1
-            self.subLabel[i, c, endCol] += steps[np.arange(0, len(c))]
-            self.counter[i, c, endCol] += 1
+            self.subLabel[i, c, startCol] += steps[np.arange(0, len(c))]
+            self.counter[i, c, startCol] += 1
             stepIndex = len(c)
-
-            if startCol < endCol :
-                r =  np.arange(startCol, endCol+1)
+            # cube subouput
+            if time_idx+stepIndex >= 60:
+                t1 = np.arange(time_idx, 60)
             else:
-                r = np.arange(endCol, startCol+1)[::-1]
+                t1 = np.arange(time_idx, time_idx+stepIndex)
+            for ti, ci in zip(t1, c):
+                self.subOutputCube[batch_idx,ti,ci,startCol] += 1
+            
+            if startCol < endCol :
+                r =  np.arange(startCol+1, endCol+1)
+            else:
+                r = np.arange(endCol, startCol)[::-1]
             # self.subLabel[i, task_idx, startRow, r] += 1
-            self.subLabel[i, startRow, r] += steps[np.arange(stepIndex, stepIndex+len(r))]
-            self.counter[i, startRow, r] += 1
+            self.subLabel[i, endRow, r] += steps[np.arange(stepIndex, stepIndex+len(r))]
+            self.counter[i, endRow, r] += 1
+            # cube subouput
+            if t1[-1] < 60:
+                if t1[-1] + len(r)+1 >= 60:
+                    t2 = np.arange(t1[-1]+1, 60)
+                else:
+                    t2 = np.arange(t1[-1]+1, t1[-1] + len(r)+1)
+                for ti, ri in zip(t2, r):
+                    self.subOutputCube[batch_idx,ti,endRow,ri] += 1
 
     
     # avoid no fly zone with routing |冖| or |_|
@@ -401,9 +457,9 @@ class SimulatorTest:
         t2 = np.arange(t1[-1]+1, t1[-1]+pathLen[1]+1)
         t3 = np.arange(t2[-1]+1, t2[-1]+pathLen[2]+1)
         
-        trajectors[t1, path[0][0], path[0][1]] += 1
-        trajectors[t2, path[1][0], path[1][1]] += 1
-        trajectors[t3, path[2][0], path[2][1]] += 1
+        # trajectors[t1, path[0][0], path[0][1]] += 1
+        # trajectors[t2, path[1][0], path[1][1]] += 1
+        # trajectors[t3, path[2][0], path[2][1]] += 1
         
         if isInterval:
             # subnet
@@ -417,6 +473,15 @@ class SimulatorTest:
             self.counter[i, path[1][0], path[1][1]] += 1
             self.subLabel[i, path[2][0], path[2][1]] += steps[np.arange(sum(pathLen[:2]), sum(pathLen))]
             self.counter[i, path[2][0], path[2][1]] += 1
+            # cube subouput
+            ts1 = np.arange(time_idx, time_idx+pathLen[0])
+            ts2 = np.arange(ts1[-1]+1, ts1[-1]+pathLen[1]+1)
+            ts3 = np.arange(ts2[-1]+1, ts2[-1]+pathLen[2]+1)
+            tmp = np.zeros(shape=(self.map_size*2, self.map_size, self.map_size), dtype=int)
+            tmp[ts1, path[0][0], path[0][1]] += 1
+            tmp[ts2, path[1][0], path[1][1]] += 1
+            tmp[ts3, path[2][0], path[2][1]] += 1
+            self.subOutputCube[batch_idx] += tmp[:60, :]
             # Rnet
             # self.Rfeature[batch_idx, path[0][0], path[0][1], 1] = 1
             # self.Rfeature[batch_idx, path[1][0], path[1][1], 1] = 1
@@ -424,13 +489,33 @@ class SimulatorTest:
 
         return trajectors
 
+    def image(self):
+        trajector = self.trajectors[:10]
+        # trajector = self.subOutputCube[:10]
+        trajector = np.sum(trajector, axis=1)
+        
+        nfz = self.NFZ[:10]
+        areas = nfz + trajector
+        # areas = trajector
+        
+        # fig, axs = plt.subplots(1, 10, figsize=(40, 6))
+        # for ax, title, area in zip(axs, ['trajector', 'subLabel', 'counter', 'Rfeature'], 
+        #                                 [trajector, subLabel, counter, Rfeature]):
+        for i in range(areas.shape[0]):
+            area = areas[i]
+            
+            plt.imshow(area, cmap=plt.cm.gnuplot)
+            # plt.get_xaxis().set_visible(False)
+            # plt.get_yaxis().set_visible(False)
+            plt.savefig("img/test_{0}.png".format(i))
+            
 
 
 if __name__ == "__main__":
     timeCount = time.time()
-    s = SimulatorTest(batch=10, mapSize=100)
+    s = SimulatorAstar(batch=10, mapSize=100)
     s.generate()
-
+    s.image()
     # print('\ntotal cost {0}'.format(time.time() - timeCount))
     # print("\n--------SubNet--------")
     # print('subTaskList: {0}'.format(s.subTaskList.shape))
@@ -453,10 +538,7 @@ if __name__ == "__main__":
     # print(np.max(s.Rfeature))
     # print(np.min(s.Rfeature))
 
-
-
-
-
+    
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'mainTaskList'), s.mainTaskList)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'trajectors'), s.trajectors)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'Rfeature'), s.Rfeature)

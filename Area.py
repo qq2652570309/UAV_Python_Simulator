@@ -53,13 +53,17 @@ class Area:
         x1 = 0
         y1 = 0
         while True:
-            if 2 <= x1 <= 87 and 2 <= y1 <= 87:
+            if 5 <= x1 <= 85 and 5 <= y1 <= 85:
                 break
             i = random.choice(self.indices)
             x1, y1 = self.locations[i]
         x2 = x1
-        y2 = y1 + size if y1 + size < 100 else 97
-        x4 = x1 + size if x1 + size < 100 else 97
+        y2 = y1 + size
+        if y2 > 95:
+            y2 = 95
+        x4 = x1 + size
+        if x4 > 95:
+            x4 = 95
         y4 = y1
         x3, y3 = x4, y2
         
@@ -106,7 +110,7 @@ class Area:
             x3, y3 = self.nfz[2]
             if (x1 <= x <= x3 and y1 <= y <= y3) or\
                (x1 <= x <= x3 and y1 <= y+5 <= y3) or\
-               (x1 <= x <= x3 and y1 <= y+5 <= y3) or\
+               (x1 <= x+5 <= x3 and y1 <= y <= y3) or\
                (x1 <= x+5 <= x3 and y1 <= y+5 <= y3):
                 return False
         return True

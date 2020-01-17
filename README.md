@@ -29,3 +29,6 @@ dataPreprocess.py
 
 ## redunce warming
 pip install "numpy<1.17" or numpy==1.16.4
+
+## intall matplotlib in virtualenv
+pip install matplotlib --upgrade --ignore-installed six

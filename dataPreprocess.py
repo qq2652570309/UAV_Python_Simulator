@@ -1,8 +1,12 @@
 import numpy as np
 # from simulator import Simulator
 # from simulatorNFZ import SimulatorNFZ
+<<<<<<< HEAD
 # from simulator_astar import SimulatorAstar
 from simulator_astarProb import SimulatorAstarProb
+=======
+from simulator_astar import SimulatorAstar
+>>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
 import logging
 import time
 import os
@@ -249,8 +253,13 @@ class Preprocess:
         self.save(self.subOutput, name='data_subnet', directory=directory, subDirectory='fushion')
         logging.info('')
         # subnet Cube output = (batch, 60, 100, 100)
+<<<<<<< HEAD
         # self.save(self.subOutputCube, name='data_subnet_cube', directory=directory, subDirectory='fushion')
         # logging.info('')
+=======
+        self.save(self.subOutputCube, name='data_subnet_cube', directory=directory, subDirectory='fushion')
+        logging.info('')
+>>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
         
         # ---------------------- sub network ----------------------
         logging.info('  process subnet label:')
@@ -270,7 +279,11 @@ if __name__ == "__main__":
     logging.basicConfig(filename='log.txt', format='%(levelname)s:%(message)s', level=logging.INFO)
     logging.info('Started')
 
+<<<<<<< HEAD
     s = SimulatorAstarProb(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+=======
+    s = SimulatorAstar(batch=3000, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60)
+>>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
     startTimeTotal = time.time()
     s.generate()
     
@@ -285,7 +298,11 @@ if __name__ == "__main__":
                     subOutput=s.subOutput, subOutputCube=s.subOutputCube, 
                     rfeature=s.Rfeature, noFlyZone=s.NFZ,
                     subLabel=s.subLabel, subList=s.subTaskList)
+<<<<<<< HEAD
     p.featureLabel(directory='astarProbility')
+=======
+    p.featureLabel(directory='astar')
+>>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
     
     logging.info('Finished dataPreprocess')
     print('Finished dataPreprocess')

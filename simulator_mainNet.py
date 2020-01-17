@@ -29,7 +29,7 @@ class SimulatorMainNet:
         # every timestep, number of uav on each grid
         # used for generate density map (label) and init density (input)
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
-        # subOutput = (3000, 60, 15, 100, 100), tasklist as input for MainNet
+        # subOutput = (3000, 60, 100, 100), tasklist as input for MainNet
         self.subOutput = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=float)
         # Rnet input
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)

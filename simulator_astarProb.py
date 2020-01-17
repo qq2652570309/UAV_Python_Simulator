@@ -20,8 +20,8 @@ from collections import deque
 random.seed(0)
 np.random.seed(0)
 
-class SimulatorAstar:
-    def __init__(self, batch = 1, time=350, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
+class SimulatorAstarProb:
+    def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
         self.batch = batch
         self.map_size = mapSize
         self.time = time
@@ -143,7 +143,8 @@ class SimulatorAstar:
                             self.mainTaskList[batch_idx,time_idx,task_idx,1] = startCol
                             self.mainTaskList[batch_idx,time_idx,task_idx,2] = endRow
                             self.mainTaskList[batch_idx,time_idx,task_idx,3] = endCol
-                        
+                            self.npPath(startRow, startCol, endRow, endCol, batch_idx, time_idx)
+
                         # [ and ]
                         if noFlyZone[0, 1] <= startCol <= noFlyZone[2, 1] and noFlyZone[0, 1] <= endCol <= noFlyZone[2, 1]:
                             path, pathLen = self.verticalRouting(startRow, startCol, endRow, endCol, noFlyZone)
@@ -183,24 +184,15 @@ class SimulatorAstar:
                             if isHorizontalCross() or isVerticalCross():
                                 # vertically move first, horizontally move second
                                 trajectors = self.vertical_horizontal(startRow, startCol, endRow, endCol, currentTime, trajectors)
-                                if isInterval:
-                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=False)
                             else:
                                 # horizontally move first, vertically move second
                                 trajectors = self.horizontal_vertical(startRow, startCol, endRow, endCol, currentTime, trajectors)
-                                if isInterval:
-                                    self.sliceTaskMap(batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=True)
 
             self.trajectors[batch_idx] = trajectors[start_time:start_time+self.trajectoryTime]
             
             logging.info('End {0} iteration, cost {1}'.format(batch_idx, time.time() - startTimeIter))
             print('End {0} iteration, cost {1}\n'.format(batch_idx, time.time() - startTimeIter))
             logging.info('{0} batch, start time {1}\n'.format(batch_idx, start_time))
-
-        self.subLabel = np.nan_to_num(self.subLabel / self.counter)
-        for b in range(self.batch):
-            for t in range(self.taskTime):
-                self.subOutput[b, t] = self.subLabel[b*self.taskTime+t]
             
     
     def horizontal_vertical(self, startRow, startCol, endRow, endCol, currentTime, trajectors):
@@ -222,7 +214,7 @@ class SimulatorAstar:
         # trajectors[t1,startRow,r] += 1
         remainingTime -= len(r)
         self.totalFlyingTime += len(r)
-
+        
         if remainingTime > 0 :
             # exists time for vertical
             if remainingTime >= abs(startRow-endRow) :
@@ -315,87 +307,35 @@ class SimulatorAstar:
                     r = np.arange(endCol, startCol)[::-1]
                 self.Rfeature[batch_idx, endRow, r] = 1
 
-    # gnerate subnet label without no fly zone routing
-    def sliceTaskMap(self, batch_idx, time_idx, task_idx, startRow, startCol, endRow, endCol, horizontal=False):
-        i = batch_idx*60 + time_idx
+    # generate subnet task path based on probility
+    def npPath(self, startRow, startCol, endRow, endCol, batch_idx, time):
+        directRow = endRow - startRow
+        if directRow != 0:
+            directRow = directRow / abs(directRow)
+        directCol = endCol - startCol
+        if directCol != 0:
+            directCol = directCol / abs(directCol)
 
-        self.subTaskList[i, task_idx, 0] = startRow 
-        self.subTaskList[i, task_idx, 1] = startCol
-        self.subTaskList[i, task_idx, 2] = endRow
-        self.subTaskList[i, task_idx, 3] = endCol
-        
-        # compute each step value
-        pathLen = abs(startRow-endRow) + abs(endCol-startCol) + 1
-        step = (self.endValue-self.startValue)/(pathLen-1)
-        steps = np.around(np.arange(start=self.startValue, stop=self.endValue+step, step=step), 2)
-        
-        if horizontal:
-            if startCol < endCol :
-                r =  np.arange(startCol, endCol+1)
-            else:
-                r = np.arange(endCol, startCol+1)[::-1]
-            # self.subLabel[i, task_idx, startRow, r] += 1
-            self.subLabel[i, startRow, r] += steps[np.arange(0, len(r))]
-            self.counter[i, startRow, r] += 1
-            stepIndex = len(r)
-            # cube subouput
-            if time_idx+stepIndex >= 60:
-                t1 = np.arange(time_idx, 60)
-            else:
-                t1 = np.arange(time_idx, time_idx+stepIndex)
-            for ti, ri in zip(t1, r):
-                self.subOutputCube[batch_idx,ti,startRow,ri] += 1
-            
-            if startRow < endRow:
-                c = np.arange(startRow+1, endRow+1)
-            else:
-                c = np.arange(endRow, startRow)[::-1]
-            # self.subLabel[i, task_idx, c, endCol] += 1
-            self.subLabel[i, c, endCol] += steps[np.arange(stepIndex, stepIndex+len(c))]
-            self.counter[i, c, endCol] += 1
-            # cube subouput
-            if t1[-1] < 60:
-                if t1[-1] + len(c)+1 >= 60:
-                    t2 = np.arange(t1[-1]+1, 60)
-                else:
-                    t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
-                for ti, ci in zip(t2, c):
-                    self.subOutputCube[batch_idx,ti,ci,endCol] += 1
-
-        else:
-            if startRow < endRow:
-                c = np.arange(startRow, endRow+1)
-            else:
-                c = np.arange(endRow, startRow+1)[::-1]
-            # self.subLabel[i, task_idx, c, endCol] += 1
-            self.subLabel[i, c, startCol] += steps[np.arange(0, len(c))]
-            self.counter[i, c, startCol] += 1
-            stepIndex = len(c)
-            # cube subouput
-            if time_idx+stepIndex >= 60:
-                t1 = np.arange(time_idx, 60)
-            else:
-                t1 = np.arange(time_idx, time_idx+stepIndex)
-            for ti, ci in zip(t1, c):
-                self.subOutputCube[batch_idx,ti,ci,startCol] += 1
-            
-            if startCol < endCol :
-                r =  np.arange(startCol+1, endCol+1)
-            else:
-                r = np.arange(endCol, startCol)[::-1]
-            # self.subLabel[i, task_idx, startRow, r] += 1
-            self.subLabel[i, endRow, r] += steps[np.arange(stepIndex, stepIndex+len(r))]
-            self.counter[i, endRow, r] += 1
-            # cube subouput
-            if t1[-1] < 60:
-                if t1[-1] + len(r)+1 >= 60:
-                    t2 = np.arange(t1[-1]+1, 60)
-                else:
-                    t2 = np.arange(t1[-1]+1, t1[-1] + len(r)+1)
-                for ti, ri in zip(t2, r):
-                    self.subOutputCube[batch_idx,ti,endRow,ri] += 1
-
+        q = deque()
+        q.append((startRow,startCol))
+        t = time
+        while len(q) > 0:
+            if t >= 60:
+                break
+            size = len(q)
+            for _ in range(size):
+                row, col = q.popleft()
+                self.subOutput [batch_idx, int(t), int(row), int(col)] += round(1/size,2)
+                # self.subOutput [batch_idx, int(t), int(row), int(col)] += 1
+                if min(startRow, endRow) <= row + directRow <= max(startRow, endRow):
+                    if directRow != 0 and not (row + directRow, col) in q:
+                        q.append((row + directRow, col))
+                if min(startCol, endCol) <= col + directCol <= max(startCol, endCol):
+                    if directCol != 0 and not (row, col + directCol) in q:
+                        q.append((row, col + directCol))
+            t += 1
     
+
     # avoid no fly zone with routing |冖| or |_|
     def horizontalRouting(self, sr, sc, er, ec, noFlyZone):
         R1 = noFlyZone[0, 0]
@@ -464,32 +404,6 @@ class SimulatorAstar:
         # trajectors[t1, path[0][0], path[0][1]] += 1
         # trajectors[t2, path[1][0], path[1][1]] += 1
         # trajectors[t3, path[2][0], path[2][1]] += 1
-        
-        if isInterval:
-            # subnet
-            i = batch_idx*60 + time_idx
-            totalLen = sum(pathLen)
-            step = (self.endValue-self.startValue)/(totalLen-1)
-            steps = np.around(np.arange(self.startValue, self.endValue+step, step), 2)
-            self.subLabel[i, path[0][0], path[0][1]] += steps[np.arange(0, pathLen[0])]
-            self.counter[i, path[0][0], path[0][1]] += 1
-            self.subLabel[i, path[1][0], path[1][1]] += steps[np.arange(pathLen[0], sum(pathLen[:2]))]
-            self.counter[i, path[1][0], path[1][1]] += 1
-            self.subLabel[i, path[2][0], path[2][1]] += steps[np.arange(sum(pathLen[:2]), sum(pathLen))]
-            self.counter[i, path[2][0], path[2][1]] += 1
-            # cube subouput
-            ts1 = np.arange(time_idx, time_idx+pathLen[0])
-            ts2 = np.arange(ts1[-1]+1, ts1[-1]+pathLen[1]+1)
-            ts3 = np.arange(ts2[-1]+1, ts2[-1]+pathLen[2]+1)
-            tmp = np.zeros(shape=(self.map_size*2, self.map_size, self.map_size), dtype=int)
-            tmp[ts1, path[0][0], path[0][1]] += 1
-            tmp[ts2, path[1][0], path[1][1]] += 1
-            tmp[ts3, path[2][0], path[2][1]] += 1
-            self.subOutputCube[batch_idx] += tmp[:60, :]
-            # Rnet
-            # self.Rfeature[batch_idx, path[0][0], path[0][1], 1] = 1
-            # self.Rfeature[batch_idx, path[1][0], path[1][1], 1] = 1
-            # self.Rfeature[batch_idx, path[2][0], path[2][1], 1] = 1
 
         return trajectors
 
@@ -517,7 +431,7 @@ class SimulatorAstar:
 
 if __name__ == "__main__":
     timeCount = time.time()
-    s = SimulatorAstar(batch=20, mapSize=100)
+    s = SimulatorAstarProb(batch=10, mapSize=100)
     s.generate()
     s.image()
     

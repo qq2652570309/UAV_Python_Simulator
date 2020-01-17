@@ -53,13 +53,17 @@ class Area:
         x1 = 0
         y1 = 0
         while True:
-            if 2 <= x1 <= 87 and 2 <= y1 <= 87:
+            if 5 <= x1 <= 85 and 5 <= y1 <= 85:
                 break
             i = random.choice(self.indices)
             x1, y1 = self.locations[i]
         x2 = x1
-        y2 = y1 + size if y1 + size < 100 else 97
-        x4 = x1 + size if x1 + size < 100 else 97
+        y2 = y1 + size
+        if y2 > 95:
+            y2 = 95
+        x4 = x1 + size
+        if x4 > 95:
+            x4 = 95
         y4 = y1
         x3, y3 = x4, y2
         
@@ -101,14 +105,17 @@ class Area:
             sx ,sy = self.locations[s]
             if abs(x-sx) < 7 and abs(y-sy) < 7:
                 return False
-            # is this area in no-fly zone
-            x1, y1 = self.nfz[0]
-            x3, y3 = self.nfz[2]
-            if (x1 <= x <= x3 and y1 <= y <= y3) or\
-               (x1 <= x <= x3 and y1 <= y+5 <= y3) or\
-               (x1 <= x <= x3 and y1 <= y+5 <= y3) or\
-               (x1 <= x+5 <= x3 and y1 <= y+5 <= y3):
-                return False
+        # is this area in no-fly zone
+        x1, y1 = self.nfz[0]
+        x3, y3 = self.nfz[2]
+        if x1 <= x <= x3 and y1 <= y <= y3:
+            return False
+        if x1 <= x <= x3 and y1 <= y+5 <= y3:
+            return False
+        if x1 <= x+5 <= x3 and y1 <= y <= y3:
+            return False
+        if x1 <= x+5 <= x3 and y1 <= y+5 <= y3:
+            return False
         return True
     
     def randomArea(self, mapSize=100, areaSize=3, num=10):
@@ -148,7 +155,7 @@ class Area:
                 A[x1:x3+1, y1:y3+1] = 1
             ax.imshow(A)
             ax.set_title(title)
-            ax.get_xaxis().set_visible(False)
+            ax.get_xaxis().set_visible(True)
             ax.get_yaxis().set_visible(True)
             plt.savefig("img/{0}.png".format(name))
 
@@ -185,34 +192,19 @@ class Area:
 if __name__ == "__main__":
     a = Area(mapSize=100, areaSize=3, areaNum=10)
     
-    a.refresh(1)
-    a.image(size=100, name="area1")
-    a.refresh(2)
-    a.image(size=100, name="area2")
-    a.refresh(3)
-    a.image(size=100, name="area3")
-    a.refresh(4)
-    a.image(size=100, name="area4")
+    # a.refresh(1)
+    # a.image(size=100, name="area1")
+    # a.refresh(2)
+    # a.image(size=100, name="area2")
+    # a.refresh(3)
+    # a.image(size=100, name="area3")
+    # a.refresh(4)
+    # a.image(size=100, name="area4")
     # a.oneImage(size=100, name="area4")
     # a.refresh(5)
     # a.image(size=100, name="area5")
     
-    
-    # for i in range(6):
-    #     m = np.all(a.subnet_data_env[i*60:(i+1)*60] == a.subnet_data_env[i*60])
-    #     n = np.all(a.subnet_data_env[i*60:(i+1)*60] == a.fushion_data_env[i])
-    #     print(m and n, m, n)
-    # for i in range(5):
-    #     n = np.all(a.fushion_data_env[i] == a.fushion_data_env[i+1])
-    #     print(n)
-    
-    # plt.gray()
-    # plt.imshow(a.fushion_data_env[0])
-    # plt.savefig("image0.png")
-    # plt.imshow(a.fushion_data_env[1])
-    # plt.savefig("image1.png")
-    # plt.imshow(a.fushion_data_env[5])
-    # plt.savefig("image5.png")
+    a.image(100)
     
     
     

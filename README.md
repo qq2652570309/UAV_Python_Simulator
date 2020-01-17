@@ -24,14 +24,8 @@ python dataPreprocess.py
 ## generate data for Main Network
 simulator_mainNet.py
 
-## generate data for Main Network
-simulator_subNet.py
-
 ## preprocessing data
 dataPreprocess.py
-
-## generate image
-generateImage.py
 
 ## redunce warming
 pip install "numpy<1.17" or numpy==1.16.4

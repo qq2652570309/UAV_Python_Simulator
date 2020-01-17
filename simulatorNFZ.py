@@ -41,6 +41,8 @@ class SimulatorNFZ:
         self.trajectors = np.zeros(shape=(batch, trajectoryTime, mapSize, mapSize), dtype=int)
         # subOutput = (3000, 60, 100, 100), tasklist as input for MainNet
         self.subOutput = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=float)
+        # subOutputCube = (3000, 60, 100, 100), tasklist as input for MainNet, 3D cube
+        self.subOutputCube = np.zeros(shape=(batch, taskTime, mapSize, mapSize), dtype=int)
         # Rnet input
         self.Rfeature = np.zeros(shape=(batch, mapSize, mapSize, 2), dtype=np.float32)
         # no fly zone
@@ -116,7 +118,7 @@ class SimulatorNFZ:
                             self.mainTaskList[batch_idx,time_idx,task_idx,1] = startCol
                             self.mainTaskList[batch_idx,time_idx,task_idx,2] = endRow
                             self.mainTaskList[batch_idx,time_idx,task_idx,3] = endCol
-
+                        
                         # [ and ]
                         if noFlyZone[0, 1] <= startCol <= noFlyZone[2, 1] and noFlyZone[0, 1] <= endCol <= noFlyZone[2, 1]:
                             path, pathLen = self.verticalRouting(startRow, startCol, endRow, endCol, noFlyZone)
@@ -296,12 +298,12 @@ class SimulatorNFZ:
         self.subTaskList[i, task_idx, 1] = startCol
         self.subTaskList[i, task_idx, 2] = endRow
         self.subTaskList[i, task_idx, 3] = endCol
-
+        
         # compute each step value
         pathLen = abs(startRow-endRow) + abs(endCol-startCol) + 1
         step = (self.endValue-self.startValue)/(pathLen-1)
         steps = np.around(np.arange(start=self.startValue, stop=self.endValue+step, step=step), 2)
-
+        
         if horizontal:
             if startCol < endCol :
                 r =  np.arange(startCol, endCol+1)
@@ -311,7 +313,14 @@ class SimulatorNFZ:
             self.subLabel[i, startRow, r] += steps[np.arange(0, len(r))]
             self.counter[i, startRow, r] += 1
             stepIndex = len(r)
-
+            # cube subouput
+            if time_idx+stepIndex >= 60:
+                t1 = np.arange(time_idx, 60)
+            else:
+                t1 = np.arange(time_idx, time_idx+stepIndex)
+            for ti, ri in zip(t1, r):
+                self.subOutputCube[batch_idx,ti,startRow,ri] += 1
+            
             if startRow < endRow:
                 c = np.arange(startRow+1, endRow+1)
             else:
@@ -319,23 +328,47 @@ class SimulatorNFZ:
             # self.subLabel[i, task_idx, c, endCol] += 1
             self.subLabel[i, c, endCol] += steps[np.arange(stepIndex, stepIndex+len(c))]
             self.counter[i, c, endCol] += 1
+            # cube subouput
+            if t1[-1] < 60:
+                if t1[-1] + len(c)+1 >= 60:
+                    t2 = np.arange(t1[-1]+1, 60)
+                else:
+                    t2 = np.arange(t1[-1]+1, t1[-1] + len(c)+1)
+                for ti, ci in zip(t2, c):
+                    self.subOutputCube[batch_idx,ti,ci,endCol] += 1
+
         else:
             if startRow < endRow:
-                c = np.arange(startRow+1, endRow+1)
+                c = np.arange(startRow, endRow+1)
             else:
-                c = np.arange(endRow, startRow)[::-1]
+                c = np.arange(endRow, startRow+1)[::-1]
             # self.subLabel[i, task_idx, c, endCol] += 1
-            self.subLabel[i, c, endCol] += steps[np.arange(0, len(c))]
-            self.counter[i, c, endCol] += 1
+            self.subLabel[i, c, startCol] += steps[np.arange(0, len(c))]
+            self.counter[i, c, startCol] += 1
             stepIndex = len(c)
-
-            if startCol < endCol :
-                r =  np.arange(startCol, endCol+1)
+            # cube subouput
+            if time_idx+stepIndex >= 60:
+                t1 = np.arange(time_idx, 60)
             else:
-                r = np.arange(endCol, startCol+1)[::-1]
+                t1 = np.arange(time_idx, time_idx+stepIndex)
+            for ti, ci in zip(t1, c):
+                self.subOutputCube[batch_idx,ti,ci,startCol] += 1
+            
+            if startCol < endCol :
+                r =  np.arange(startCol+1, endCol+1)
+            else:
+                r = np.arange(endCol, startCol)[::-1]
             # self.subLabel[i, task_idx, startRow, r] += 1
-            self.subLabel[i, startRow, r] += steps[np.arange(stepIndex, stepIndex+len(r))]
-            self.counter[i, startRow, r] += 1
+            self.subLabel[i, endRow, r] += steps[np.arange(stepIndex, stepIndex+len(r))]
+            self.counter[i, endRow, r] += 1
+            # cube subouput
+            if t1[-1] < 60:
+                if t1[-1] + len(r)+1 >= 60:
+                    t2 = np.arange(t1[-1]+1, 60)
+                else:
+                    t2 = np.arange(t1[-1]+1, t1[-1] + len(r)+1)
+                for ti, ri in zip(t2, r):
+                    self.subOutputCube[batch_idx,ti,endRow,ri] += 1
 
     
     # avoid no fly zone with routing |冖| or |_|
@@ -419,6 +452,15 @@ class SimulatorNFZ:
             self.counter[i, path[1][0], path[1][1]] += 1
             self.subLabel[i, path[2][0], path[2][1]] += steps[np.arange(sum(pathLen[:2]), sum(pathLen))]
             self.counter[i, path[2][0], path[2][1]] += 1
+            # cube subouput
+            ts1 = np.arange(time_idx, time_idx+pathLen[0])
+            ts2 = np.arange(ts1[-1]+1, ts1[-1]+pathLen[1]+1)
+            ts3 = np.arange(ts2[-1]+1, ts2[-1]+pathLen[2]+1)
+            tmp = np.zeros(shape=(self.map_size*2, self.map_size, self.map_size), dtype=int)
+            tmp[ts1, path[0][0], path[0][1]] += 1
+            tmp[ts2, path[1][0], path[1][1]] += 1
+            tmp[ts3, path[2][0], path[2][1]] += 1
+            self.subOutputCube[batch_idx] += tmp[:60, :]
             # Rnet
             # self.Rfeature[batch_idx, path[0][0], path[0][1], 1] = 1
             # self.Rfeature[batch_idx, path[1][0], path[1][1], 1] = 1
@@ -426,22 +468,25 @@ class SimulatorNFZ:
 
         return trajectors
 
-
     def image(self):
-        trajector = self.trajectors[:10]
+        trajector = self.subOutputCube[:10]
         trajector = np.sum(trajector, axis=1)
+        
         nfz = self.NFZ[:10]
         areas = nfz + trajector
+        # areas = trajector
         
         # fig, axs = plt.subplots(1, 10, figsize=(40, 6))
         # for ax, title, area in zip(axs, ['trajector', 'subLabel', 'counter', 'Rfeature'], 
         #                                 [trajector, subLabel, counter, Rfeature]):
         for i in range(areas.shape[0]):
             area = areas[i]
+            
             plt.imshow(area, cmap=plt.cm.gnuplot)
             # plt.get_xaxis().set_visible(False)
             # plt.get_yaxis().set_visible(False)
-            plt.savefig("img/{0}.png".format(i))
+            plt.savefig("img/test_{0}.png".format(i))
+            
 
 
 if __name__ == "__main__":
@@ -471,10 +516,7 @@ if __name__ == "__main__":
     # print(np.max(s.Rfeature))
     # print(np.min(s.Rfeature))
 
-
-
-
-
+    
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'mainTaskList'), s.mainTaskList)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'trajectors'), s.trajectors)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'Rfeature'), s.Rfeature)

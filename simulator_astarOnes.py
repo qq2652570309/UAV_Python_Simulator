@@ -20,7 +20,7 @@ from collections import deque
 random.seed(0)
 np.random.seed(0)
 
-class SimulatorAstarProb:
+class SimulatorAstarOnes:
     def __init__(self, batch = 1, time=200, mapSize=100, taskNum=15, trajectoryTime=70, taskTime=60, restrictStart=-1, restrctEnd=-1):
         self.batch = batch
         self.map_size = mapSize
@@ -102,7 +102,7 @@ class SimulatorAstarProb:
                 
                 # task iteration
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
-                
+
                 for task_idx, task_val in zip(range(len(startPositions)), startPositions):
                     startRow, startCol, launchingRate = task_val
                     time_idx = -1
@@ -180,7 +180,7 @@ class SimulatorAstarProb:
                                 if uav_up <= nfz_up < nfz_down <= uav_down:
                                     return True
                                 return False 
-
+                        
                             if isHorizontalCross() or isVerticalCross():
                                 # vertically move first, horizontally move second
                                 trajectors = self.vertical_horizontal(startRow, startCol, endRow, endCol, currentTime, trajectors)
@@ -319,13 +319,15 @@ class SimulatorAstarProb:
         q = deque()
         q.append((startRow,startCol))
         t = time
+        val = 1
         while len(q) > 0:
             if t >= 60:
                 break
             size = len(q)
+            val += 1
             for _ in range(size):
                 row, col = q.popleft()
-                self.subOutput [batch_idx, int(t), int(row), int(col)] += round(1/size,2)
+                self.subOutput [batch_idx, int(t), int(row), int(col)] += val
                 if min(startRow, endRow) <= row + directRow <= max(startRow, endRow):
                     if directRow != 0 and not (row + directRow, col) in q:
                         q.append((row + directRow, col))
@@ -430,7 +432,7 @@ class SimulatorAstarProb:
 
 if __name__ == "__main__":
     timeCount = time.time()
-    s = SimulatorAstarProb(batch=10, mapSize=100)
+    s = SimulatorAstarOnes(batch=10, mapSize=100)
     s.generate()
     s.image()
     
@@ -456,7 +458,7 @@ if __name__ == "__main__":
     # print('----- Rfeature -----')
     # print(np.max(s.Rfeature))
     # print(np.min(s.Rfeature))
-    
+
     
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'mainTaskList'), s.mainTaskList)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'trajectors'), s.trajectors)

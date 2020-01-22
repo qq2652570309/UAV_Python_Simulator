@@ -102,7 +102,7 @@ class SimulatorAstarProb:
                 
                 # task iteration
                 startPositions = self.area.getLaunchPoint(n=self.task_num)
-
+                
                 for task_idx, task_val in zip(range(len(startPositions)), startPositions):
                     startRow, startCol, launchingRate = task_val
                     time_idx = -1
@@ -180,7 +180,7 @@ class SimulatorAstarProb:
                                 if uav_up <= nfz_up < nfz_down <= uav_down:
                                     return True
                                 return False 
-                        
+
                             if isHorizontalCross() or isVerticalCross():
                                 # vertically move first, horizontally move second
                                 trajectors = self.vertical_horizontal(startRow, startCol, endRow, endCol, currentTime, trajectors)
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     # print('----- Rfeature -----')
     # print(np.max(s.Rfeature))
     # print(np.min(s.Rfeature))
-
+    
     
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'mainTaskList'), s.mainTaskList)
     # np.save('../../../data/zzhao/uav_regression/{0}/{1}.npy'.format('test', 'trajectors'), s.trajectors)

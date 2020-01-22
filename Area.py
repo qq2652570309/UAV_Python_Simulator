@@ -105,7 +105,6 @@ class Area:
             sx ,sy = self.locations[s]
             if abs(x-sx) < 7 and abs(y-sy) < 7:
                 return False
-<<<<<<< HEAD
         # is this area in no-fly zone
         x1, y1 = self.nfz[0]
         x3, y3 = self.nfz[2]
@@ -117,16 +116,6 @@ class Area:
             return False
         if x1 <= x+5 <= x3 and y1 <= y+5 <= y3:
             return False
-=======
-            # is this area in no-fly zone
-            x1, y1 = self.nfz[0]
-            x3, y3 = self.nfz[2]
-            if (x1 <= x <= x3 and y1 <= y <= y3) or\
-               (x1 <= x <= x3 and y1 <= y+5 <= y3) or\
-               (x1 <= x+5 <= x3 and y1 <= y <= y3) or\
-               (x1 <= x+5 <= x3 and y1 <= y+5 <= y3):
-                return False
->>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
         return True
     
     def randomArea(self, mapSize=100, areaSize=3, num=10):

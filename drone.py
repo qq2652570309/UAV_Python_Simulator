@@ -45,11 +45,7 @@ class Drone:
         if directCol == directRow == 0:
             self.path = []
         
-<<<<<<< HEAD
         self.trajectors[currentTime, self.current_row, self.current_col] = 1
-=======
-        self.trajectors[currentTime, self.current_row, self.current_col] += 1
->>>>>>> bafe927d9ca7472df95e2243eb12e84659ff7aaa
         self.path.append((self.current_row, self.current_col))
         # if self.id == 1:
         #     print(currentTime, self.current_row, self.current_col)
